@@ -4,7 +4,7 @@
 
   <groupId>edu.gmu.cs</groupId>
   <artifactId>ecj</artifactId>
-  <version>23.1-SNAPSHOT</version>
+  <version>23-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>ecj</name>
