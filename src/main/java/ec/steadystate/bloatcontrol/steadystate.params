@@ -20,7 +20,7 @@ state = 				ec.steadystate.SteadyStateEvolutionState
 # ... or we can say to run for N generations, where a generation
 # is equal to the size of subpopulation 0.  After the initial population
 # is evaluated, only one additional individual is evaluated each time
-# generations = 50
+generations = 400
 
 # threads should be 1 each
 evalthreads = 				1
@@ -35,6 +35,7 @@ exch = 					ec.simple.SimpleExchanger
 # We MUST use a SteadyStateBreeder and SteadyStateEvaluator
 breed =					ec.steadystate.SteadyStateBreeder
 eval =					ec.steadystate.bloatcontrol.BloatControlSteadyStateEvaluator
+#eval =					ec.steadystate.SteadyStateEvaluator
 
 # We must specify a deselector for each subpopulation.  Here is random
 # deselection for subpopulation 0.
