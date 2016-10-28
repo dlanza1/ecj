@@ -24,10 +24,9 @@ import java.io.Serializable;
  * @version 1.0 
  */
 
-public abstract class GPNodeGatherer implements Serializable
+public class GPNodeGatherer implements Serializable
     {
-    // used internally by GPNode
-    GPNode node;
+    public GPNode node;
 
     /** Returns true if thisNode is the kind of node to be considered in the
         gather count for nodeInPosition(...) and GPNode.numNodes(GPNodeGatherer).

@@ -7,12 +7,16 @@
 
 package ec.app.ant;
 import ec.app.ant.func.*;
+import ec.time.utils.FitnessWithTime;
+import ec.time.utils.Timer;
 import ec.util.*;
 import ec.*;
 import ec.gp.*;
 import ec.gp.koza.*;
+
 import java.io.*;
 import java.util.*;
+
 import ec.simple.*;
 
 /* 
@@ -133,10 +137,9 @@ public class Ant extends GPProblem implements SimpleProblemForm
             state.output.fatal("Error loading file or resource", base.push(P_FILE), null);
         
         food = 0;
-        LineNumberReader lnr = null;
         try
             {
-            lnr = 
+            LineNumberReader lnr = 
                 //new LineNumberReader(new FileReader(filename));
                 new LineNumberReader(new InputStreamReader(str));
             
@@ -181,10 +184,6 @@ public class Ant extends GPProblem implements SimpleProblemForm
             {
             state.output.fatal("The Ant trail file could not be read due to an IOException:\n" + e);
             }
-        finally
-            {
-            try { if (lnr != null) lnr.close(); } catch (IOException e) { }
-            }
         state.output.exitIfErrors();
 
         // load foodx and foody reset arrays
@@ -209,14 +208,24 @@ public class Ant extends GPProblem implements SimpleProblemForm
             posy = 0;
             orientation = O_RIGHT;
 
+            Timer timer = new Timer().start();
+            
             for(moves=0;moves<maxMoves && sum<food; )
                 ((GPIndividual)ind).trees[0].child.eval(
                     state,threadnum,input,stack,((GPIndividual)ind),this);
-                
+            
+            timer.stop();
+            
             // the fitness better be KozaFitness!
             KozaFitness f = ((KozaFitness)ind.fitness);
-            f.setStandardizedFitness(state,(food - sum));
+            f.setStandardizedFitness(state,(float)(food - sum));
             f.hits = sum;
+            
+            if(f instanceof FitnessWithTime){
+				FitnessWithTime f_t = (FitnessWithTime) f;
+				f_t.setEvaluation_time(timer.getMicro());
+			}
+            
             ind.evaluated = true;
 
             // clean up array

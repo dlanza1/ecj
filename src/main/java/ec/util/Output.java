@@ -56,7 +56,20 @@ import java.util.Enumeration;
  * benefit of the user.
  * </ol>
  *
- * 
+ <!--
+ * <p>The default verbosity values for different kinds of announcements are
+ * given below:
+ *
+ <table><tr><td>0</td><td>V_VERBOSE</td><td>(totally verbose)</td>
+ </tr><tr><td>1000</td><td>V_NO_MESSAGES</td><td>(don't print messages or system messages)</td>
+ </tr><tr><td>2000</td><td>V_NO_WARNINGS</td><td>(don't print warnings, messages, or system messages)</td>
+ </tr><tr><td>3000</td><td>V_NO_GENERAL</td><td>(don't print warnings, messages, system messages, or other "general info" stuff that might come along (like statistics maybe))</td>
+ </tr><tr><td>4000</td><td>V_NO_ERRORS</td><td>(don't even print errors)</td>
+ </tr><tr><td>5000</td><td>V_TOTALLY_SILENT</td><td>(be totally silent)</td>
+ </tr></table>
+ *
+ -->
+ 
  * <p>Output will also store all announcements in memory by default so as to reproduce
  * them if it's restarted from a checkpoint.  You can change this behavior also by
  *
@@ -84,6 +97,10 @@ public class Output implements Serializable
     String filePrefix = "";
     boolean throwsErrors = false;
 
+    public static final int ALL_MESSAGE_LOGS = -1;
+    /** When passed to print functions, doesn't do any printing */
+    public static final int NO_LOGS = -2;
+        
     /** Total verbosity */
     public static final int V_VERBOSE = 0;
     /** Don't print messages */
@@ -96,21 +113,17 @@ public class Output implements Serializable
     public static final int V_NO_ERRORS = 4000;
     /** No verbosity at all, not even system messages or fatal errors*/
     public static final int V_TOTALLY_SILENT = 5000;
-
-    public static final int ALL_MESSAGE_LOGS = -1;
-    /** When passed to print functions, doesn't do any printing */
-    public static final int NO_LOGS = -2;
-        
-    public synchronized void setFilePrefix(String filePrefix) {
+    
+    public void setFilePrefix(String filePrefix) {
         this.filePrefix = filePrefix;
         }
 
-    public synchronized void setThrowsErrors(boolean val)
+    public void setThrowsErrors(boolean val)
         {
         throwsErrors = val;
         }
         
-    public synchronized boolean getThrowsErrors() { return throwsErrors; }
+    public boolean getThrowsErrors() { return throwsErrors; }
 
     protected void finalize() throws Throwable
         {
@@ -436,36 +449,6 @@ public class Output implements Serializable
         return l;
         }
     
-    /** Prints an initial warning to System.err.  This is only to
-        be used by ec.Evolve in starting up the system. */
-    public static void initialWarning(String s)
-        {
-        initialWarning(s, null, null);
-        }
-
-    /** Prints an initial warning to System.err.  This is only to
-        be used by ec.Evolve in starting up the system. */
-    public static void initialWarning(String s, Parameter p1)
-        {
-        initialWarning(s, p1, null);
-        }
-
-    /** Prints an initial warning to System.err.  This is only to
-        be used by ec.Evolve in starting up the system. */
-    public static void initialWarning(String s, Parameter p1, Parameter p2)
-        {
-        System.err.println("STARTUP WARNING:\n" + s);
-        if (p1!=null) 
-            {
-            System.err.println("PARAMETER: " + p1);
-            }
-
-        if (p2!=null && p1!=null)
-            {
-            System.err.println("     ALSO: " + p2);
-            }
-        }
-
     /** Prints an initial error to System.err.  This is only to
         be used by ec.Evolve in starting up the system. */
     public static void initialError(String s)
@@ -691,7 +674,7 @@ public class Output implements Serializable
         if (!log.postAnnouncements && _announcement) return;  // don't write it
         // if (log.verbosity >= _verbosity) return;  // don't write it
         // if (verbosity >= _verbosity) return;  // don't write it
-        if (log.silent) return;  // don't write it
+        if (log.muzzle) return;  // don't write it
         // now write it
         log.writer.println(s);
         // if (flush) 
@@ -723,7 +706,7 @@ public class Output implements Serializable
         else
             {
             Log l = (Log) logs.elementAt(log);
-            if (l==null) throw new OutputException("Unknown log number" + log);
+            if (l==null) throw new OutputException("Unknown log number" + l);
             println(s,_verbosity,l,_announcement,false);
             }
         }
@@ -795,7 +778,7 @@ public class Output implements Serializable
         if (log.writer==null) throw new OutputException("Log with a null writer: " + log);
         //if (log.verbosity >= _verbosity) return;  // don't write it
         //if (verbosity >= _verbosity) return;  // don't write it
-        if (log.silent) return;  // don't write it
+        if (log.muzzle) return;  // don't write it
         // now write it
         log.writer.print(s);
         // do not flush until you get a println
@@ -821,7 +804,7 @@ public class Output implements Serializable
         else
             {
             Log l = (Log) logs.elementAt(log);
-            if (l==null) throw new OutputException("Unknown log number" + log);
+            if (l==null) throw new OutputException("Unknown log number" + l);
             print(s,V_VERBOSE,l);
             }
         }
@@ -921,7 +904,6 @@ public class Output implements Serializable
             {
             return (InputStream)(Class.forName("com.jcraft.jzlib.ZInputStream").getConstructor(new Class[] { InputStream.class } ).newInstance(new Object[] { in }));
             }
-        // just in case of RuntimeExceptions
         catch (Exception e) { return null; }  // failed, probably doesn't have JZLib on the system
         }
 
@@ -941,16 +923,15 @@ public class Output implements Serializable
             int Z_SYNC_FLUSH = outz.getField("Z_SYNC_FLUSH").getInt(null);
             
             Class outc = Class.forName("com.jcraft.jzlib.ZOutputStream");
-            Object outi = outc.getConstructor(new Class[] { OutputStream.class, Integer.TYPE }).newInstance(new Object[] { out, Integer.valueOf(Z_BEST_SPEED) });
+            Object outi = outc.getConstructor(new Class[] { OutputStream.class, Integer.TYPE }).newInstance(new Object[] { out, new Integer(Z_BEST_SPEED) });
             outc.getMethod("setFlushMode", new Class[] { Integer.TYPE }).invoke(outi, new Object[] { new Integer(Z_SYNC_FLUSH) });
             return (OutputStream) outi;
             }
-        // just in case of RuntimeExceptions
         catch (Exception e) { return null; } // failed, probably doesn't have JZLib on the system
         }
 
 
-    static class Announcement implements Serializable
+    class Announcement implements Serializable
         {
         /** The announcement's...anouncement.*/
         public String text;

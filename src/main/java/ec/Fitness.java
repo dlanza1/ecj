@@ -140,7 +140,7 @@ public abstract class Fitness implements Prototype, Comparable
         a single positive value (for example, MultiObjectiveFitness), you should 
         perform some reasonable translation.
     */
-    public abstract double fitness();
+    public abstract float fitness();
 
     /** Should return true if this is a good enough fitness to end the run */
     public abstract boolean isIdealFitness();
@@ -440,7 +440,7 @@ public abstract class Fitness implements Prototype, Comparable
             }
         else
             {
-            setToMeanOf(state, new Fitness[] { f2[f2.length/2 - 1], f2[f2.length/2] });  // for example, 6/2 = 3, and 0, 1, *2*, *3*, 4, 5
+            setToMeanOf(state, new Fitness[] { f2[f2.length/2 - 1], f2[f2.length/2] });  // for example, 6/2 = 3, and 0, 1, *2<, *3*, 4, 5
             }
         }
 

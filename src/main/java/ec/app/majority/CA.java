@@ -25,7 +25,7 @@ import ec.*;
 
 
 
-public class CA implements java.io.Serializable
+public class CA
     {
     private static final long serialVersionUID = 1;
     
@@ -72,7 +72,7 @@ public class CA implements java.io.Serializable
     public final boolean converged()
         {
         int t = ca[0];
-        //int len = ca.length;
+        int len = ca.length;
         for(int i = 1; i < ca.length; i++)
             if (ca[i] != t) return false;
         return true;

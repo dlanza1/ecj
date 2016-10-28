@@ -41,10 +41,7 @@ public class RegERC extends ERC
     public int nodeHashCode()
         {
         // a reasonable hash code
-        long l = Double.doubleToLongBits(value);
-        int iUpper = (int)(l & 0x00000000FFFFFFFF);
-        int iLower = (int)(l >>> 32);
-        return this.getClass().hashCode() + iUpper + iLower;
+        return this.getClass().hashCode() + Float.floatToIntBits((float)value);
         }
 
     public boolean nodeEquals(final GPNode node)
@@ -94,7 +91,7 @@ public class RegERC extends ERC
         }
 
     public String toStringForHumans()
-        { return "" + value; }
+        { return "" + (double)value; }
 
     public void eval(final EvolutionState state,
         final int thread,

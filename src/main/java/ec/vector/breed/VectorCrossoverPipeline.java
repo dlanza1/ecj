@@ -48,6 +48,7 @@ import ec.util.*;
  * @version 1.0
  */
 
+@SuppressWarnings("serial")
 public class VectorCrossoverPipeline extends BreedingPipeline
     {
     public static final String P_TOSS = "toss";
@@ -91,15 +92,9 @@ public class VectorCrossoverPipeline extends BreedingPipeline
         return (tossSecondParent? minChildProduction(): minChildProduction()*2);
         }
 
-    public int produce(final int min, 
-        final int max, 
-        final int start,
-        final int subpopulation,
-        final Individual[] inds,
-        final EvolutionState state,
-        final int thread) 
-
-        {
+	@Override
+	public int produce(int min, int max, int start, int subpopulation, Individual[] inds,
+			EvolutionState state, int thread) {
         // how many individuals should we make?
         int n = typicalIndsProduced();
         if (n < min) n = min;
@@ -152,8 +147,8 @@ public class VectorCrossoverPipeline extends BreedingPipeline
                 }
             }
         return n;
-        }
-    }
+	}
+}
     
     
     

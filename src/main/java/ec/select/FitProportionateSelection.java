@@ -45,7 +45,7 @@ public class FitProportionateSelection extends SelectionMethod
     /** Default base */
     public static final String P_FITNESSPROPORTIONATE = "fitness-proportionate";
     /** Normalized, totalized fitnesses for the population */
-    public double[] fitnesses;
+    public float[] fitnesses;
 
     public Parameter defaultBase()
         {
@@ -59,7 +59,7 @@ public class FitProportionateSelection extends SelectionMethod
         final int thread)
         {
         // load fitnesses
-        fitnesses = new double[s.population.subpops[subpopulation].individuals.length];
+        fitnesses = new float[s.population.subpops[subpopulation].individuals.length];
         for(int x=0;x<fitnesses.length;x++)
             {
             fitnesses[x] = ((Individual)(s.population.subpops[subpopulation].individuals[x])).fitness.fitness();
@@ -77,7 +77,7 @@ public class FitProportionateSelection extends SelectionMethod
         {
         // Pick and return an individual from the population
         return RandomChoice.pickFromDistribution(
-            fitnesses,state.random[thread].nextDouble());
+            fitnesses,state.random[thread].nextFloat());
         }
     
     public void finishProducing(final EvolutionState s,

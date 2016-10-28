@@ -6,6 +6,8 @@
 
 
 package ec.app.lawnmower;
+import ec.time.utils.FitnessWithTime;
+import ec.time.utils.Timer;
 import ec.util.*;
 import ec.*;
 import ec.gp.*;
@@ -141,10 +143,14 @@ public class Lawnmower extends GPProblem implements SimpleProblemForm
             posy = maxy/2+1;
             orientation = O_UP;
 
+            Timer timer = new Timer().start();
+            
             // evaluate the individual
             ((GPIndividual)ind).trees[0].child.eval(
                 state,threadnum,input,stack,((GPIndividual)ind),this);
                 
+            timer.stop();
+            
             // clean up the map
             for(int x=0;x<maxx;x++)
                 for(int y=0;y<maxy;y++)
@@ -152,8 +158,14 @@ public class Lawnmower extends GPProblem implements SimpleProblemForm
 
             // the fitness better be KozaFitness!
             KozaFitness f = ((KozaFitness)ind.fitness);
-            f.setStandardizedFitness(state, maxx*maxy - sum);
+            f.setStandardizedFitness(state,(float)(maxx*maxy - sum));
             f.hits = sum;
+            
+            if(f instanceof FitnessWithTime){
+				FitnessWithTime f_t = (FitnessWithTime) f;
+				f_t.setEvaluation_time(timer.getMicro());
+			}
+            
             ind.evaluated = true;
             }
         }

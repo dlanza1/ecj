@@ -67,12 +67,8 @@ public class MultiBreedingPipeline extends BreedingPipeline
 
         Parameter def = defaultBase();
 
-        double total = 0.0;
-        
-        if (sources.length == 0)  // uh oh
-            state.output.fatal("num-sources must be provided and > 0 for MultiBreedingPipeline",
-                base.push(P_NUMSOURCES), def.push(P_NUMSOURCES));
-        
+        float total = 0.0f;
+
         for(int x=0;x<sources.length;x++)
             {
             // make sure the sources are actually breeding pipelines
@@ -96,7 +92,7 @@ public class MultiBreedingPipeline extends BreedingPipeline
         maxGeneratable=0;  // indicates that I don't know what it is yet.  
                 
         // declare that likelihood isn't used
-        if (likelihood < 1.0)
+        if (likelihood < 1.0f)
             state.output.warning("MultiBreedingPipeline does not respond to the 'likelihood' parameter.",
                 base.push(P_LIKELIHOOD), def.push(P_LIKELIHOOD));
         }
@@ -120,7 +116,7 @@ public class MultiBreedingPipeline extends BreedingPipeline
 
         {
         BreedingSource s = sources[BreedingSource.pickRandom(
-                sources,state.random[thread].nextDouble())];
+                sources,state.random[thread].nextFloat())];
         int total;
         
         if (generateMax)

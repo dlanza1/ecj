@@ -197,14 +197,13 @@ public class PTC2 extends GPNodeBuilder
         // return a terminal
         if ((   requestedSize==1 ||                                                          // Now pick a terminal if our size is 1
                 warnAboutNonterminal(nonterminals.length==0, type, false, state)) &&         // OR if there are NO nonterminals!
-            // (this will freak out the static checkers)
             (triedTerminals = true) &&                                                       // [first set triedTerminals]
             terminals.length != 0)                                                           // AND if there are available terminals
             {
             root = (GPNode)
                 terminals[RandomChoice.pickFromDistribution(
                     pset.terminalProbabilities(t),
-                    state.random[thread].nextDouble())].lightClone();
+                    state.random[thread].nextFloat())].lightClone();
             root.resetNode(state,thread);  // give ERCs a chance to randomize
             root.argposition = (byte)argposition;
             root.parent = parent;
@@ -217,7 +216,7 @@ public class PTC2 extends GPNodeBuilder
             root = (GPNode)
                 nonterminals[RandomChoice.pickFromDistribution(
                     pset.nonterminalProbabilities(t),
-                    state.random[thread].nextDouble())].lightClone();
+                    state.random[thread].nextFloat())].lightClone();
             root.resetNode(state,thread);  // give ERCs a chance to randomize
             root.argposition = (byte)argposition;
             root.parent = parent;
@@ -252,14 +251,13 @@ public class PTC2 extends GPNodeBuilder
                 if ((   s_size + s >= requestedSize ||                                        // if we need no more nonterminal nodes
                         dequeue_depth==maxDepth ||                                            // OR if we're at max depth and must pick a terminal
                         warnAboutNonterminal(nonterminals.length==0, type, false, state)) &&  // OR if there are NO nonterminals!
-                    // (this will freak out the static checkers)
                     (triedTerminals = true) &&                                                // [first set triedTerminals]
                     terminals.length != 0)                                                    // AND if there are available terminals
                     {
                     GPNode n = (GPNode)
                         terminals[RandomChoice.pickFromDistribution(
                             pset.terminalProbabilities(y),
-                            state.random[thread].nextDouble())].lightClone();
+                            state.random[thread].nextFloat())].lightClone();
                     dequeue_node.children[dequeue_argpos] = n;
                     n.resetNode(state,thread);  // give ERCs a chance to randomize
                     n.argposition = (byte)dequeue_argpos;
@@ -274,7 +272,7 @@ public class PTC2 extends GPNodeBuilder
                     GPNode n = (GPNode)
                         nonterminals[RandomChoice.pickFromDistribution(
                             pset.nonterminalProbabilities(y),
-                            state.random[thread].nextDouble())].lightClone();
+                            state.random[thread].nextFloat())].lightClone();
                     dequeue_node.children[dequeue_argpos] = n;
                     n.resetNode(state,thread);  // give ERCs a chance to randomize
                     n.argposition = (byte)dequeue_argpos;

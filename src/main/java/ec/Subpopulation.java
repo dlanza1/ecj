@@ -139,20 +139,6 @@ public class Subpopulation implements Group
             }
         catch (CloneNotSupportedException e) { throw new InternalError(); } // never happens
         }
-        
-    /** Resizes the Subpopulation to a new size.  If the size is smaller, then
-        the Subpopulation is truncated such that the higher indexed individuals
-        may be deleted.  If the size is larger, then the resulting Subpopulation will have
-        null individuals (this almost certainly is not what you will want).
-    */
-    
-    public void resize(int toThis)
-        {
-        Individual[] temp = new Individual[toThis];
-        System.arraycopy(individuals, 0, temp, 0, toThis);
-        individuals = temp;
-        }
-
 
     /** Sets all Individuals in the Subpopulation to null, preparing it to be reused. */
     public void clear()
@@ -212,7 +198,7 @@ public class Subpopulation implements Group
                 extraBehavior=FILL;
             else if (extra.equalsIgnoreCase(V_WRAP))
                 extraBehavior=WRAP;
-            else state.output.fatal("Subpopulation given a bad " + P_EXTRA_BEHAVIOR + ": " + extra,
+            else state.output.fatal("Subpouplation given a bad " + P_EXTRA_BEHAVIOR + ": " + extra,
                 base.push(P_EXTRA_BEHAVIOR),def.push(P_EXTRA_BEHAVIOR));
             }
         }
@@ -240,7 +226,8 @@ public class Subpopulation implements Group
                 state.output.message("Old subpopulation was of size " + len + ", expanding to size " + individuals.length);
                 return;
                 }
-            else if (len > individuals.length)   // the population was shrunk, there's more space yet
+            
+            if (len > individuals.length)   // the population was shrunk, there's more space yet
                 {
                 // What do we do with the remainder?
                 if (extraBehavior == TRUNCATE)
@@ -277,10 +264,6 @@ public class Subpopulation implements Group
                     start = oldInds.length;
                     // now go on to fill the rest below...
                     }                       
-                }
-            else // exactly right number, we're dont
-                {
-                return;
                 }
             }
 
@@ -333,7 +316,6 @@ public class Subpopulation implements Group
         }
         
     /** Prints an entire subpopulation in a form readable by humans, with a verbosity of Output.V_NO_GENERAL. */
-    boolean warned = false;
     public void printSubpopulationForHumans(final EvolutionState state,
         final int log)
         {
@@ -341,13 +323,7 @@ public class Subpopulation implements Group
         for(int i = 0 ; i < individuals.length; i++)
             {
             state.output.println(INDIVIDUAL_INDEX_PREAMBLE + Code.encode(i), log);
-            if (individuals[i] != null)
-                individuals[i].printIndividualForHumans(state, log);
-            else if (!warned)
-                {
-                state.output.warnOnce("Null individuals found in subpopulation");
-                warned = true;  // we do this rather than relying on warnOnce because it is much faster in a tight loop
-                }
+            individuals[i].printIndividualForHumans(state, log);
             }
         }
         

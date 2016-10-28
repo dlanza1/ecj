@@ -127,7 +127,6 @@ public class Slave
     
     public final static String P_RETURNINDIVIDUALS = "eval.return-inds";
 
-    public final static String P_SILENT = "eval.slave.silent";
     public final static String P_MUZZLE = "eval.slave.muzzle";
             
     public static final byte V_NOTHING = 0;
@@ -156,10 +155,7 @@ public class Slave
     /** How long we sleep in between attempts to connect to the master (in milliseconds). */
     public static final int SLEEP_TIME = 100;
         
-    public static final ThreadPool pool = new ThreadPool();
-    
-    /** My unique slave number. At present this is just used to define a unique name. */
-    public static int slaveNum = -1;
+    public static ThreadPool pool = new ThreadPool();
 
     public static void main(String[] args)
         {
@@ -207,15 +203,9 @@ public class Slave
         
         boolean returnIndividuals = parameters.getBoolean(new Parameter(P_RETURNINDIVIDUALS),null,false);
                 
-        // 5.5 should we silence the whole thing?
+        // 5.5 should we muzzle?
 
-        boolean silent = parameters.getBoolean(new Parameter(P_SILENT), null, false);
-
-        if (parameters.exists(new Parameter(P_MUZZLE), null))
-            Output.initialWarning("" + new Parameter(P_MUZZLE) + " has been deprecated.  We suggest you use " + 
-                new Parameter(P_SILENT) + " or similar newer options.");
-        silent = silent || parameters.getBoolean(new Parameter(P_MUZZLE), null, false);
-
+        boolean muzzle = parameters.getBoolean(new Parameter(P_MUZZLE), null, false);
                 
         // 6. Open a server socket and listen for requests
         String slaveName = parameters.getString(
@@ -243,7 +233,7 @@ public class Slave
                 new Parameter(P_RUNEVOLVE), new Parameter(P_RETURNINDIVIDUALS));
             }
         
-        if (!silent) 
+        if (!muzzle) 
             {
             Output.initialMessage("ECJ Slave");
             if (runEvolve) Output.initialMessage("Running in Evolve mode, evolve time is " + runTime + " milliseconds");
@@ -260,7 +250,7 @@ public class Slave
                 try
                     {
                     long connectAttemptCount = 0;
-                    if (!silent) Output.initialMessage("Connecting to master at "+masterHost+":"+masterPort);
+                    if (!muzzle) Output.initialMessage("Connecting to master at "+masterHost+":"+masterPort);
                     while (true)
                         {
                         try
@@ -280,8 +270,8 @@ public class Slave
                                 }
                             }
                         }
-                    if (!silent) Output.initialMessage("Connected to master after " + (connectAttemptCount * SLEEP_TIME) + " ms");
-                    
+                    if (!muzzle) Output.initialMessage("Connected to master after " + (connectAttemptCount * SLEEP_TIME) + " ms");
+                                
                     DataInputStream dataIn = null;
                     DataOutputStream dataOut = null;
 
@@ -297,7 +287,7 @@ public class Slave
                                 {
                                 String err = "You do not appear to have JZLib installed on your system, and so must set eval.compression=false.  " +
                                     "To get JZLib, download from the ECJ website or from http://www.jcraft.com/jzlib/";
-                                if (!silent) Output.initialMessage(err);
+                                if (!muzzle) Output.initialMessage(err);
                                 throw new Output.OutputExitException(err);
                                 }
                             }
@@ -308,18 +298,15 @@ public class Slave
                     catch (IOException e)
                         {
                         String err = "Unable to open input stream from socket:\n"+e;
-                        if (!silent) Output.initialMessage(err);
+                        if (!muzzle) Output.initialMessage(err);
                         throw new Output.OutputExitException(err);
                         }
-                        
-                    // read the unique number assigned to me
-                    slaveNum = dataIn.readInt();
                                 
                     // specify the slaveName
                     if (slaveName==null)
                         {                    
-                        slaveName = socket.getLocalAddress().toString() + "/" + slaveNum;
-                        if (!silent) Output.initialMessage("No slave name specified.  Using: " + slaveName);
+                        slaveName = socket.getLocalAddress().toString() + "/" + System.currentTimeMillis();
+                        if (!muzzle) Output.initialMessage("No slave name specified.  Using: " + slaveName);
                         }
                                 
                     dataOut.writeUTF(slaveName);
@@ -338,13 +325,13 @@ public class Slave
                     output.addLog(ec.util.Log.D_STDOUT, false);
                     output.addLog(ec.util.Log.D_STDERR, true);
 
-                    if (silent)
+                    if (muzzle)
                         {
-                        output.getLog(0).silent = true;
-                        output.getLog(1).silent = true;
+                        output.getLog(0).muzzle = true;
+                        output.getLog(1).muzzle = true;
                         }
 
-                    if (!silent) output.systemMessage(Version.message());
+                    if (!muzzle) output.systemMessage(Version.message());
 
 
                     // 2. set up thread values
@@ -444,13 +431,13 @@ public class Slave
                     {
                     if (state != null)
                         state.output.fatal(e.getMessage());
-                    else if (!silent) System.err.println("FATAL ERROR (EvolutionState not created yet): " + e.getMessage());
+                    else if (!muzzle) System.err.println("FATAL ERROR (EvolutionState not created yet): " + e.getMessage());
                     }
                 catch (IOException e)
                     {
                     if (state != null)
                         state.output.fatal("Unable to connect to master:\n" + e);
-                    else if (!silent) System.err.println("FATAL ERROR (EvolutionState not created yet): " + e);
+                    else if (!muzzle) System.err.println("FATAL ERROR (EvolutionState not created yet): " + e);
                     }
                 }
             catch (Output.OutputExitException e)
@@ -470,7 +457,7 @@ public class Slave
                 System.err.println(e);
                 if (oneShot) System.exit(0);
                 }
-            if (!silent) Output.initialMessage("\n\nResetting Slave");
+            if (!muzzle) Output.initialMessage("\n\nResetting...");
             }
         }
                             
@@ -513,7 +500,8 @@ public class Slave
         
         boolean[] updateFitness = new boolean[numInds];
         final Individual[] inds = new Individual[numInds];
-        
+                        
+                        
                         
                         
         // Either evaluate all the individuals once and return them immediately
@@ -521,7 +509,7 @@ public class Slave
         // and returning them as soon as they come in, albeit in the proper order)
         if (!runEvolve)
             {
-            ThreadPool.Worker[] threads = new ThreadPool.Worker[state.evalthreads];
+            Thread[] threads = new Thread[state.evalthreads];
             final SimpleProblemForm[] problems = new SimpleProblemForm[state.evalthreads];
             int[] indForThread = new int[state.evalthreads];
                         
@@ -540,7 +528,7 @@ public class Slave
                     if (t >= state.evalthreads) t = 0;       // we can only be here if evalthreads > numInds
                     if (threads[t] != null)
                         {
-                        pool.join(threads[t]);  // ran out of threads, wait for new ones
+                        pool.joinAndReturn(threads[t]);  // ran out of threads, wait for new ones
                         returnIndividualsToMaster(state, inds, updateFitness, dataOut, returnIndividuals, indForThread[t]);  // return just that individual
                         }
                     if (problems[t] == null) problems[t] = ((SimpleProblemForm)(state.evaluator.p_problem.clone()));
@@ -548,10 +536,10 @@ public class Slave
                     final int j = i;
                     final int s = t;
                     indForThread[t] = i;
-                    threads[t] = pool.start(new Runnable()
+                    threads[t] = pool.startThread("Evaluation of individual " + i, new Runnable()
                         {
                         public void run() { problems[s].evaluate( state, inds[j], subpops[j], 0 ); }
-                        }, "Evaluation of individual " + i);
+                        });
                     t++;
                     }
                                 
@@ -560,7 +548,7 @@ public class Slave
                     {
                     if (threads[t] != null)
                         {
-                        pool.join(threads[t]);
+                        pool.joinAndReturn(threads[t]);
                         returnIndividualsToMaster(state, inds, updateFitness, dataOut, returnIndividuals, indForThread[t]);   // return just that individual
                         }
                     }
@@ -716,7 +704,7 @@ public class Slave
         
         
     // if individualInQuestion is -1, all individuals are returned
-    static void returnIndividualsToMaster(EvolutionState state, Individual []inds, boolean[] updateFitness,
+    private static void returnIndividualsToMaster(EvolutionState state, Individual []inds, boolean[] updateFitness,
         DataOutputStream dataOut, boolean returnIndividuals, int individualInQuestion) throws IOException 
         {
         // Return the evaluated individual to the master

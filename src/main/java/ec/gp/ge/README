@@ -59,27 +59,20 @@ to pull all this off.  Notably:
    in a 'gp-species' parameter.
 
 Generally Grammatical Evolution is surprisingly easy to implement in ECJ.  The 
-ge/ge.params file will do most of the heavy lifting for you if you're dealing
+ec/gp/ge/ge.params file will do most of the heavy lifting for you if you're dealing
 with just a single tree (no ADFs say).  But in some cases we'll need to add 
 special GP elements to this subsidiary GPSpecies, mostly for additiona trees.
 For example, in the Lawnmower problem, to have three trees, we need to define
 them manually as shown in ec/app/lawnmower/ge.params
 
-Grammatical Evolution has three common breeding operators for its lists of
+Grammatical Evolution has two common breeding operators for its lists of
 integers:
 
 - TRUNCATION: Integers unused during the mapping process are later chopped off
-  the end of the Individual.  This is implemented using
-  ec/gp/ge/breed/GETruncationPipeline
-
-- GE CROSSOVER: This is just like ListCrossover, except that the crossed over
-  ranges must include SOME number of genes which were consumed by each of
-  the Individuals when producing trees.  Normally only one-point crossover
-  is used, but ECJ provides both one- and two-point crossover.  This is
-  implemented using ec/gp/ge/breed/GECrossoverPipeline
+  the end of the Individual.
 
 - GENE DUPLICATION: A string of integers in the list is copied and reinserted
-  "downstream" in the list.  This is implemented elsewhere by the class 
+  "downstream" in the list.  This is implemented elsehwere by the class 
   ec/vector/breed/GeneDuplicationPipeline
 
 To this any number of other list crossover and mutation operators could be used.
@@ -134,17 +127,12 @@ holds onto the GPProblem.  The GEProblem first maps the GEIndividual into a GPIn
 using the GESpecies.  It then hands the GPIndividual to the GPProblem to be evaluated.
 
 
-[in the ge.breed subpackage] 
+[in the ec.gp.ge.breed subpackage] 
 
 GETruncationPipeline.java
 
 A special list operator which only works with GEIndividuals.  Truncates from the 
 list all those integers which weren't used during the mapping process.
-
-GECrossoverPipeline.java
-
-A special list operator which only works with GEIndividuals.  Guarantees that crossed
-over regions include some consumed genes.
 
 
 [elsewhere in the ec.vector.breed package]

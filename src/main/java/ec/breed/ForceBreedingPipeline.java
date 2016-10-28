@@ -70,7 +70,7 @@ public class ForceBreedingPipeline extends BreedingPipeline
             state.output.fatal("ForceBreedingPipeline must produce at least 1 child at a time", base.push(P_NUMINDS),def.push(P_NUMINDS));
 
         // declare that likelihood isn't used
-        if (likelihood < 1.0)
+        if (likelihood < 1.0f)
             state.output.warning("ForceBreedingPipeline does not respond to the 'likelihood' parameter.",
                 base.push(P_LIKELIHOOD), def.push(P_LIKELIHOOD));
         }
@@ -99,10 +99,10 @@ public class ForceBreedingPipeline extends BreedingPipeline
         for(total=0; total<n; )
             {
             numToProduce = n - total;
-            if (numToProduce > numInds)
-                numToProduce = numInds;
+            if (numToProduce > numInds) numToProduce = numInds;
 
-            total += sources[0].produce(numToProduce,numToProduce,start+total,subpopulation,inds,state,thread);
+            total += sources[0].produce(numToProduce,numToProduce,start+total,
+                subpopulation,inds,state,thread);
             }
         
         // clone if necessary

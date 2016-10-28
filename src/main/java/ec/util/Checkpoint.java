@@ -74,6 +74,8 @@ public class Checkpoint
                 "because of an IOException:\n--EXCEPTION--\n" +
                 e + 
                 "\n--EXCEPTION-END--\n");
+            
+            e.printStackTrace();
             }
         }
 

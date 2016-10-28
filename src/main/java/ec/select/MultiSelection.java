@@ -98,7 +98,7 @@ public class MultiSelection extends SelectionMethod
         // make our arrays
         selects = new SelectionMethod[numSelects];
 
-        double total = 0.0;
+        float total = 0.0f;
 
         for(int x=0;x<numSelects;x++)
             {
@@ -132,13 +132,13 @@ public class MultiSelection extends SelectionMethod
             }
 
         // totalize
-        double tmp = 0.0;
+        float tmp = 0.0f;
         for(int x=0;x<numSelects-1;x++) // yes, it's off by one
             { 
             tmp += selects[x].probability; 
             selects[x].probability = tmp;
             }
-        selects[numSelects-1].probability = 1.0;
+        selects[numSelects-1].probability = 1.0f;
         }
 
     public boolean produces(final EvolutionState state,
@@ -170,7 +170,7 @@ public class MultiSelection extends SelectionMethod
         final int thread)
         {
         return selects[BreedingSource.pickRandom(
-                selects,state.random[thread].nextDouble())].produce(
+                selects,state.random[thread].nextFloat())].produce(
                     subpopulation,state,thread);
         }
 
@@ -184,7 +184,7 @@ public class MultiSelection extends SelectionMethod
 
         {
         return selects[BreedingSource.pickRandom(
-                selects,state.random[thread].nextDouble())].produce(
+                selects,state.random[thread].nextFloat())].produce(
                     min,max,start,subpopulation,inds,state,thread);
         }
 

@@ -6,8 +6,11 @@
 
 
 package ec;
+
 import ec.util.*;
+
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /* 
@@ -153,12 +156,6 @@ public class Evolve
     
     /** 'auto' thread parameter value */
     public static final String V_THREADS_AUTO = "auto";
-    
-    /** Should we muzzle stdout and stderr? */
-    public static final String P_SILENT = "silent";
-
-    /** Should we muzzle stdout and stderr? [deprecated] */
-    static final String P_MUZZLE = "muzzle";
 
 
 
@@ -418,19 +415,6 @@ public class Evolve
         int evalthreads = 1;
         boolean store;
         int x;
-        
-        // Should we muzzle stdout and stderr?
-        
-        if (parameters.exists(new Parameter(P_MUZZLE), null))
-            output.warning("" + new Parameter(P_MUZZLE) + " has been deprecated.  We suggest you use " + 
-                new Parameter(P_SILENT) + " or similar newer options.");
-        
-        if (parameters.getBoolean(new Parameter(P_SILENT), null, false) ||
-            parameters.getBoolean(new Parameter(P_MUZZLE), null, false))
-            {
-            output.getLog(0).silent = true;
-            output.getLog(1).silent = true;
-            }
 
         // output was already created for us.  
         output.systemMessage(Version.message());
@@ -675,6 +659,7 @@ public class Evolve
 
     public static void main(String[] args)
         {
+    	
         EvolutionState state;
         ParameterDatabase parameters;
         
@@ -748,7 +733,7 @@ public class Evolve
                 state = initialize(parameters, job);                // pass in job# as the seed increment
                 state.output.systemMessage("Job: " + job);
                 state.job = new Object[1];                                  // make the job argument storage
-                state.job[0] = Integer.valueOf(job);                    // stick the current job in our job storage
+                state.job[0] = new Integer(job);                    // stick the current job in our job storage
                 state.runtimeArguments = args;                              // stick the runtime arguments in our storage
                 if (numJobs > 1)                                                    // only if iterating (so we can be backwards-compatible),
                     {

@@ -9,9 +9,9 @@ import ec.gp.ge.*;
 import ec.*;
 import ec.util.*;
 
-/*
+/* 
  * GEProblem.java
- *
+ * 
  * Created: Sat Oct 16 23:21:01 EDT 2010
  * By: Sean Luke, Joseph Zelibor III, and Eric Kangas
  */
@@ -24,34 +24,31 @@ import ec.util.*;
  * Note: truncaton only occurs if the number of comsumed genes is greater than 1.</p>
  *
  * <p><b>Default Base</b><br>
- * ge.truncation
+ * ec.gp.ge.breed.GETruncationPipeline
  *
  * @author Sean Luke, Joseph Zelibor III, and Eric Kangas
  * @version 1.0
  */
-
+ 
 public class GETruncationPipeline extends BreedingPipeline
     {
-    public static final String P_TRUNCATION = "truncation";
+    public static final String P_TRUNCATION = "truncate";
     public static final int NUM_SOURCES = 1;
 
-    public int numSources()
-        {
-        return NUM_SOURCES;
-        }
+    public int numSources() { return NUM_SOURCES; }
 
     public Parameter defaultBase()
         {
         return GEDefaults.base().push(P_TRUNCATION);
         }
 
-    public int produce(final int min,
-        final int max,
+    public int produce(final int min, 
+        final int max, 
         final int start,
         final int subpopulation,
         final Individual[] inds,
         final EvolutionState state,
-        final int thread)
+        final int thread) 
         {
         // grab individuals from our source and stick 'em right into inds.
         // we'll modify them from there

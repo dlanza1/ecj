@@ -32,7 +32,7 @@ public class VladERCC extends VladERCA
     public String name() { return "VladERCC"; }
 
     public String toStringForHumans()
-        { return "n*" + value; }
+        { return "n*" + (float)value; }
 
     public void eval(final EvolutionState state,
         final int thread,

@@ -12,8 +12,6 @@ import java.net.*;
 import java.util.LinkedList;
 import ec.*;
 import java.util.*;
-import ec.util.*;
-
 
 /**
  * SlaveConnection.java
@@ -52,14 +50,12 @@ class SlaveConnection
     SlaveMonitor slaveMonitor;
 
     // a pointer to the worker thread that is working for this slave
-    ThreadPool.Worker reader;
-    Runnable readerRun;
-    ThreadPool.Worker writer;
-    Runnable writerRun;
+    Thread reader;
+    Thread writer;
 
     // given that we expect the slave to return the evaluated individuals in the exact same order,
     // the jobs need to be represented as a queue.
-    LinkedList jobs = new LinkedList();
+    private LinkedList jobs = new LinkedList();
 
     /**
        The constructor also creates the queue storing the jobs that the slave
@@ -103,29 +99,17 @@ class SlaveConnection
         try { dataIn.close(); } catch (Exception e) { }
         try { evalSocket.close(); } catch (IOException e) { }
 
+        state.output.systemMessage( SlaveConnection.this.toString() + " Slave is shutting down...." );
         slaveMonitor.unregisterSlave(this);  // unregister me BEFORE I reschedule my jobs
-
+        rescheduleJobs(state);
         synchronized(jobs) 
             {
             // notify my threads now that I've closed stuff in case they're still waiting
             slaveMonitor.notifyMonitor(jobs);
             reader.interrupt();  // not important right now but...
-            writer.interrupt(); // very important that we be INSIDE the jobs synchronization here so the writer doesn't try to wait on the monitor again.
+            writer.interrupt();  // very important that we be INSIDE the jobs synchronization here so the writer doesn't try to wait on the monitor again.
             }
-                
-        // Now we exist the jobs synchronization to allow the writer to regain his
-        // mutexes, otherwise he'll block.
-                
-        slaveMonitor.pool.join(reader, readerRun);
-        slaveMonitor.pool.join(writer, writerRun);
-        reader = null;
-        writer = null;
-        readerRun = null;
-        writerRun = null;  // let GC
-
-        state.output.systemMessage("Slave " + slaveName + " shut down." );
-        if (slaveMonitor.rescheduleLostJobs)
-            rescheduleJobs(state);  // AFTER we've shut down the slave
+        state.output.systemMessage( SlaveConnection.this.toString() + " Slave exits...." );
         }
 
     public String toString() { return "Slave(" + slaveName + ")"; }
@@ -148,15 +132,22 @@ class SlaveConnection
     // constructs the worker thread for the slave and starts it
     void buildThreads()
         {
-        reader = slaveMonitor.pool.start(readerRun = new Runnable()
+        reader = new Thread()
             {
-            public void run() { while (readLoop()); }
-            });
-
-        writer = slaveMonitor.pool.start(writerRun = new Runnable()
+            public void run()
+                {
+                while( readLoop()); 
+                }
+            };
+        writer = new Thread()
             {
-            public void run() { while (writeLoop()); }
-            });
+            public void run()
+                {
+                while( writeLoop()); 
+                }
+            };
+        writer.start();
+        reader.start();
         }
     
     
@@ -194,9 +185,8 @@ class SlaveConnection
                 if ((job = oldestUnsentJob()) == null)  // automatically marks as sent
                     {
                     // failed -- wait and drop out of the loop and come in again
-                    debug("" + Thread.currentThread().getName() + "Waiting for a job to send" );                    
-                    // this is a copy of waitOnMonitor but I handle the InterruptedException
-                    jobs.wait(); 
+                    debug("" + Thread.currentThread().getName() + "Waiting for a job to send" );
+                    slaveMonitor.waitOnMonitor(jobs); 
                     }
                 }
             if (job != null)  // we got a job inside our synchronized wait
@@ -235,11 +225,7 @@ class SlaveConnection
                 dataOut.flush();
                 }
             }
-        catch (Exception e)     // just in case RuntimeException is thrown
-            {
-            shutdown(state);
-            return false; 
-            }
+        catch (Exception e)  { shutdown(state); return false; }
         return true;
         }
         
@@ -297,21 +283,25 @@ class SlaveConnection
                 debug( SlaveConnection.this.toString() + " Read Individual" );
                 }
 
+
             ///// NEXT STEP: COPY THE NEWLY-READ INDIVIDUALS BACK INTO THE ORIGINAL
             ///// INDIVIDUALS.  THIS IS QUITE A HACK, IF YOU READ JOB.JAVA
 
             // Now we have all the individuals in so we're good.  Copy them back into the original individuals
             job.copyIndividualsBack(state);
             
+
             ///// LAST STEP: LET OTHERS KNOW WE'RE DONE AND AVAILABLE FOR ANOTHER JOB
+
             // we're all done!  Yank the job from the queue so others think we're available
             synchronized(jobs)
                 {
                 jobs.removeFirst();
                 }
-
+        
             // And let the slave monitor we just finished a job
             slaveMonitor.notifySlaveAvailability( SlaveConnection.this, job, state );
+
             }
         catch (IOException e)
             {
@@ -334,7 +324,7 @@ class SlaveConnection
         synchronized(jobs)
             {
             if (job.sent) // just in case
-                state.output.fatal("Tried to schedule a job which had already been scheduled.");
+                state.output.fatal("Tried to reschedule an existing job");
             jobs.addLast(job);
             slaveMonitor.notifyMonitor(jobs);
             }

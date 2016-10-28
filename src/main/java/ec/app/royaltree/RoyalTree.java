@@ -7,12 +7,16 @@
 
 package ec.app.royaltree;
 import ec.app.royaltree.func.*;
+import ec.time.utils.FitnessWithTime;
+import ec.time.utils.Timer;
 import ec.util.*;
 import ec.*;
 import ec.gp.*;
 import ec.gp.koza.*;
 import ec.simple.*;
+
 import java.io.*;
+
 import javax.imageio.stream.*;
 
 /*
@@ -50,11 +54,22 @@ public class RoyalTree extends GPProblem implements SimpleProblemForm
         {
         if (!ind.evaluated)  // don't bother reevaluating
             {
+        	
+        	Timer timer = new Timer().start();
+        	
             // trees[0].child is the root
             double score = fitness(((GPIndividual) ind).trees[0].child, state);
+            
+            timer.stop();
 
             SimpleFitness f = ((SimpleFitness) ind.fitness);
-            f.setFitness(state, score, false);
+            f.setFitness(state, (float) score, false);
+            
+            if(f instanceof FitnessWithTime){
+				FitnessWithTime f_t = (FitnessWithTime) f;
+				f_t.setEvaluation_time(timer.getMicro());
+			}
+            
             ind.evaluated = true;
             }
         }

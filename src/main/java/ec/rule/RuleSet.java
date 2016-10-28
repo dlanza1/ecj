@@ -219,7 +219,7 @@ public class RuleSet implements Prototype
     */
     public void addRule( Rule rule )
         {
-        if( rules == null  || ( numRules == rules.length ) )
+        if( ( rules == null && numRules == 0 ) || ( numRules == rules.length ) )
             {
             Rule[] tempRules;
             if( rules == null )
@@ -353,7 +353,7 @@ public class RuleSet implements Prototype
        land in the first set.  Sets must be already allocated.
        Comment: This function appends the split rulesets to the existing rulesets already in <i>sets</i>.
     */
-    public RuleSet[] splitIntoTwo( final EvolutionState state, final int thread, RuleSet[] sets, double prob )
+    public RuleSet[] splitIntoTwo( final EvolutionState state, final int thread, RuleSet[] sets, float prob )
         {
         for( int i = 0 ; i < numRules ; i++ )
             if (state.random[thread].nextBoolean(prob))

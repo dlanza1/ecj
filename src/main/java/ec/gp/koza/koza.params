@@ -16,7 +16,6 @@
 
 parent.0 = ../../simple/simple.params
 
-
 #
 # We define the fitness of an individual to use the traditional
 # Koza-style fitness metrics, just to make everyone happy :-)

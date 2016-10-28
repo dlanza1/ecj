@@ -424,7 +424,7 @@ public class ParameterDatabase extends Properties implements Serializable
                     + defaultParameter));
         try 
             {
-            Class c = Class.forName(get(p), true, Thread.currentThread().getContextClassLoader());
+            Class c = Class.forName(get(p));
             if (!mustCastTosuperclass.isAssignableFrom(c))
                 throw new ParamClassLoadException("The class "
                     + c.getName()
@@ -514,7 +514,7 @@ public class ParameterDatabase extends Properties implements Serializable
                     + defaultParameter));
         try
             {
-            Class c = Class.forName(get(p), true, Thread.currentThread().getContextClassLoader());
+            Class c = Class.forName(get(p));
             if (!mustCastTosuperclass.isAssignableFrom(c))
                 throw new ParamClassLoadException("The class "
                     + c.getName()
@@ -582,7 +582,7 @@ public class ParameterDatabase extends Properties implements Serializable
      * not found, the defaultParameter is used. The parameter chosen is marked
      * "used".
      */
-    public Class getClassForParameter(Parameter parameter,
+    public Object getClassForParameter(Parameter parameter,
         Parameter defaultParameter, Class mustCastTosuperclass)
         throws ParamClassLoadException 
         {
@@ -601,7 +601,7 @@ public class ParameterDatabase extends Properties implements Serializable
                     + defaultParameter));
         try
             {
-            Class c = Class.forName(get(p), true, Thread.currentThread().getContextClassLoader());
+            Class c = Class.forName(get(p));
             if (!mustCastTosuperclass.isAssignableFrom(c))
                 throw new ParamClassLoadException("The class "
                     + c.getName()
@@ -672,7 +672,7 @@ public class ParameterDatabase extends Properties implements Serializable
      * an x) in hex
      */
     // we assume that the string has been trimmed already
-    int parseInt(String string)
+    /*protected*/ int parseInt(String string)
         throws NumberFormatException 
         {
         char c;
@@ -1631,9 +1631,9 @@ public class ParameterDatabase extends Properties implements Serializable
                     int i = indexOfFirstWhitespace(p);
                     if (i == -1)
                         return null;
-                    String classname = p.substring(C_CLASS.length(),i);
+                    String classname = p.substring(0,i);
                     String filename = p.substring(i).trim();
-                    return Class.forName(classname, true, Thread.currentThread().getContextClassLoader()).getResourceAsStream(filename);
+                    return Class.forName(classname).getResourceAsStream(filename);
                     }
                 else 
                     {
@@ -2038,8 +2038,10 @@ public class ParameterDatabase extends Properties implements Serializable
         uncheck();
 
         // set hashtable appropriately
-        accessed.put(parameter.param, Boolean.TRUE);
-        gotten.put(parameter.param, Boolean.TRUE);
+        if (parameter != null)
+            accessed.put(parameter.param, Boolean.TRUE);
+        if (parameter != null)
+            gotten.put(parameter.param, Boolean.TRUE);
         return result;
         }
 
@@ -2114,7 +2116,7 @@ public class ParameterDatabase extends Properties implements Serializable
         }
 
 
-    /*protected*/ synchronized Set _getShadowedValues(Parameter parameter, Set vals) 
+    /*protected*/ Set _getShadowedValues(Parameter parameter, Set vals) 
         {
         if (parameter == null) 
             {
@@ -2193,6 +2195,11 @@ public class ParameterDatabase extends Properties implements Serializable
     public String getLabel()
         {
         return label; 
+/*        File file = fileFor(parameter);
+          if (file == null) return "";
+          try { return file.getCanonicalPath(); }
+          catch (IOException e) { return ""; }
+*/
         }
         
     /*
@@ -2281,6 +2288,7 @@ public class ParameterDatabase extends Properties implements Serializable
         label = "Basic Database";
         parents = new Vector();
         checked = false; // unnecessary
+        //listeners = new Vector();
         }
     
     /** Creates a new parameter database from the given Dictionary.  
@@ -2480,18 +2488,8 @@ public class ParameterDatabase extends Properties implements Serializable
             {
             path = new File(path, (String)(b.get(i)));
             }
-
-
-        // Convert to "\" for windows
-        String returnPath;
-        if(File.separatorChar != '/')
-            returnPath = path.getPath().replace(File.separatorChar, '/');
-        else 
-            returnPath = path.getPath();
-        return returnPath;
+        return path.getPath();
         }
-
-
 
 
     /**
@@ -2539,6 +2537,7 @@ public class ParameterDatabase extends Properties implements Serializable
         relativePath = files.relativePath;
 
         parents.addElement(a);
+        //listeners = new Vector();
         }
 
 
@@ -2567,9 +2566,7 @@ public class ParameterDatabase extends Properties implements Serializable
             else
                 {
                 relativePath = simplifyPath(pathNameRelativeToClassFile);
-                InputStream f = cls.getResourceAsStream(relativePath);
-                load(f);
-                try { f.close(); } catch (IOException e) { }
+                load(cls.getResourceAsStream(relativePath));
                 }
             }
         catch (NullPointerException e)
@@ -2582,6 +2579,8 @@ public class ParameterDatabase extends Properties implements Serializable
             throw new IOException("Could not load database from resource file " + relativePath +
                 " relative to the class " + cls, e);
             }
+
+        //listeners = new Vector();
 
         // load parents
         for (int x = 0 ; ; x++) 
@@ -2596,11 +2595,11 @@ public class ParameterDatabase extends Properties implements Serializable
                 {
                 int i = indexOfFirstWhitespace(s);
                 if (i == -1) throw new FileNotFoundException("Could not parse file into filename and classname:\n\tparent." + x + " = " + s);
-                String classname = s.substring(C_CLASS.length(),i);
+                String classname = s.substring(0,i);
                 String filename = s.substring(i).trim();
                 try
                     {
-                    parents.addElement(new ParameterDatabase(filename, Class.forName(classname, true, Thread.currentThread().getContextClassLoader())));
+                    parents.addElement(new ParameterDatabase(filename, Class.forName(classname.substring(1).trim())));
                     }
                 catch (ClassNotFoundException ex)
                     {
@@ -2626,6 +2625,8 @@ public class ParameterDatabase extends Properties implements Serializable
         label = "Stream: " + System.identityHashCode(stream);
         load(stream);
 
+        //listeners = new Vector();
+
         // load parents
         for (int x = 0;; x++) 
             {
@@ -2639,11 +2640,11 @@ public class ParameterDatabase extends Properties implements Serializable
                 {
                 int i = indexOfFirstWhitespace(s);
                 if (i == -1) throw new FileNotFoundException("Could not parse file into filename and classname:\n\tparent." + x + " = " + s);
-                String classname = s.substring(C_CLASS.length(),i);
+                String classname = s.substring(0,i);
                 String filename = s.substring(i).trim();
                 try
                     {
-                    parents.addElement(new ParameterDatabase(filename, Class.forName(classname, true, Thread.currentThread().getContextClassLoader())));
+                    parents.addElement(new ParameterDatabase(filename, Class.forName(classname)));
                     }
                 catch (ClassNotFoundException ex)
                     {
@@ -2666,10 +2667,10 @@ public class ParameterDatabase extends Properties implements Serializable
         //this.file = file.getName();
         directory = new File(file.getParent()); // get the directory
         // file is in
-        FileInputStream f = new FileInputStream(file);
-        load(f);
-        try { f.close(); } catch (IOException e) { }
-                
+        load(new FileInputStream(file));
+
+        //listeners = new Vector();
+
         // load parents
         for (int x = 0;; x++) 
             {
@@ -2683,11 +2684,11 @@ public class ParameterDatabase extends Properties implements Serializable
                 {
                 int i = indexOfFirstWhitespace(s);
                 if (i == -1) throw new FileNotFoundException("Could not parse file into filename and classname:\n\tparent." + x + " = " + s);
-                String classname = s.substring(C_CLASS.length(),i);
+                String classname = s.substring(0,i);
                 String fname = s.substring(i).trim();
                 try
                     {
-                    parents.addElement(new ParameterDatabase(fname, Class.forName(classname, true, Thread.currentThread().getContextClassLoader())));
+                    parents.addElement(new ParameterDatabase(fname, Class.forName(classname.substring(1).trim())));
                     }
                 catch (ClassNotFoundException ex)
                     {
@@ -2743,7 +2744,28 @@ public class ParameterDatabase extends Properties implements Serializable
 
         // Set me up
         parents.addElement(a);
+        //listeners = new Vector();
         }
+
+    /**
+     * Prints out all the parameters in the database. Useful for debugging. If
+     * listShadowed is true, each parameter is printed with the parameter
+     * database it's located in. If listShadowed is false, only active
+     * parameters are listed, and they're all given in one big chunk.
+     */
+    //public void list(PrintStream p, boolean listShadowed) 
+    //    {
+    //     list(new PrintWriter(p), listShadowed);
+    //    }
+
+    /**
+     * Prints out all the parameters in the database, but not shadowed
+     * parameters.
+     */
+    // public void list(PrintStream p) 
+    //     {
+    //     list(new PrintWriter(p), false);
+    //     }
 
     /**
      * Prints out all the parameters in the database, but not shadowed
@@ -2773,12 +2795,16 @@ public class ParameterDatabase extends Properties implements Serializable
             while (e.hasMoreElements())
                 vec.addElement(e.nextElement());
 
+            // sort the keys
+//            Object[] array = new Object[vec.size()];
+//            vec.copyInto(array);
+//
             java.util.Collections.sort(vec);
 
             // Uncheck and print each item
-            for (int x = 0; x < vec.size(); x++) 
+            for (int x = 0; x < /* array.length;*/ vec.size(); x++) 
                 {
-                String s = (String) vec.get(x);
+                String s = (String) /* (array[x]); */ vec.get(x);
                 String v = null;
                 if (s != null)
                     v = (String) gather.get(s);
@@ -2797,11 +2823,8 @@ public class ParameterDatabase extends Properties implements Serializable
         if (listShadowed) 
             {
             // Print out my header
-            if (p!=null)
-                {
-                p.println("\n########" + prefix);
-                super.list(p);
-                }
+            if (p!=null) p.println("\n########" + prefix);
+            super.list(p);
             int size = parents.size();
             for (int x = 0; x < size; x++)
                 ((ParameterDatabase) (parents.elementAt(x)))._list(p,
@@ -2845,7 +2868,7 @@ public class ParameterDatabase extends Properties implements Serializable
      */
     public TreeModel buildTreeModel() 
         {
-        //String sep = System.getProperty("file.separator");
+        String sep = System.getProperty("file.separator");
         ParameterDatabaseTreeNode root = new ParameterDatabaseTreeNode(
             //this.directory.getAbsolutePath() + sep + this.filename);
             label);
@@ -2871,6 +2894,14 @@ public class ParameterDatabase extends Properties implements Serializable
         // would be unable to add child nodes to them.
         model.setVisibleLeaves(false);
         
+//        addListener(new ParameterDatabaseAdapter() {
+//           public void parameterSet(ParameterDatabaseEvent evt) {
+//               model.setVisibleLeaves(true);
+//               _addNodeForParameter(model, root, evt.getParameter().param);
+//               model.setVisibleLeaves(false);
+//           }
+//        });
+
         return model;
         }
 

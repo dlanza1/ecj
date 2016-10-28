@@ -75,7 +75,7 @@ public abstract class BreedingPipeline extends BreedingSource implements SteadyS
     /** Indicates that the number of sources is variable and determined by the
         user in the parameter file. */
 
-    public static final int DYNAMIC_SOURCES = -1;
+    public static final int DYNAMIC_SOURCES = 0;
 
     /** Standard parameter for number of sources (only used if numSources
         returns DYNAMIC_SOURCES */
@@ -90,7 +90,7 @@ public abstract class BreedingPipeline extends BreedingSource implements SteadyS
         
     public Parameter mybase;
 
-    public double likelihood;
+    public float likelihood;
 
     /** Array of sources feeding the pipeline */
     public BreedingSource[] sources;
@@ -147,28 +147,23 @@ public abstract class BreedingPipeline extends BreedingSource implements SteadyS
         
         Parameter def = defaultBase();
 
-        likelihood = state.parameters.getDoubleWithDefault(base.push(P_LIKELIHOOD), def.push(P_LIKELIHOOD), 1.0);
-        if (likelihood < 0.0 || likelihood > 1.0)
-            state.output.fatal("Breeding Pipeline likelihood must be a value between 0.0 and 1.0 inclusive", base.push(P_LIKELIHOOD), def.push(P_LIKELIHOOD));
+        likelihood = state.parameters.getFloatWithDefault(base.push(P_LIKELIHOOD), def.push(P_LIKELIHOOD), 1.0f);
+        if (likelihood < 0.0f || likelihood > 1.0f)
+            state.output.fatal("Breeding Pipeline likelihood must be a value between 0.0 and 1.0 inclusive",
+                base.push(P_LIKELIHOOD),
+                def.push(P_LIKELIHOOD));
 
 
         int numsources = numSources();
-        if (numsources == DYNAMIC_SOURCES)
+        if (numsources <= DYNAMIC_SOURCES)
             {
             // figure it from the file
-            numsources = state.parameters.getInt(base.push(P_NUMSOURCES), def.push(P_NUMSOURCES),0);
-            if (numsources==-1)
-                state.output.fatal("Breeding pipeline num-sources value must exist and be >= 0", base.push(P_NUMSOURCES), def.push(P_NUMSOURCES)); 
-            }
-        else if (numsources <= DYNAMIC_SOURCES)  // it's negative
-            {
-            throw new RuntimeException("In " + this + " numSources() returned < DYNAMIC_SOURCES (that is, < -1)");
-            }
-        else
-            {
-            if (state.parameters.exists(base.push(P_NUMSOURCES), def.push(P_NUMSOURCES))) // uh oh
-                state.output.warning("Breeding pipeline's number of sources is hard-coded to " + numsources + " yet num-sources was provided: num-sources will be ignored.",
-                    base.push(P_NUMSOURCES), def.push(P_NUMSOURCES));
+            numsources = state.parameters.getInt(
+                base.push(P_NUMSOURCES), def.push(P_NUMSOURCES),1);
+            if (numsources==0)
+                state.output.fatal("Breeding pipeline num-sources value must be > 0",
+                    base.push(P_NUMSOURCES),
+                    def.push(P_NUMSOURCES)); 
             }
 
         sources = new BreedingSource[numsources];
@@ -233,7 +228,7 @@ public abstract class BreedingPipeline extends BreedingSource implements SteadyS
         boolean produceChildrenFromSource) 
         {
         if (produceChildrenFromSource)
-            sources[0].produce(n,n,start,subpopulation,inds,state,thread);
+            sources[0].produce(start,start+n-1,n,n,start,subpopulation,inds,state,thread);
         if (sources[0] instanceof SelectionMethod)
             for(int q=start; q < n+start; q++)
                 inds[q] = (Individual)(inds[q].clone());

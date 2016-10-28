@@ -6,11 +6,14 @@
 
 
 package ec.app.regression;
+import ec.time.utils.FitnessWithTime;
+import ec.time.utils.Timer;
 import ec.util.*;
 import ec.*;
 import ec.gp.*;
 import ec.gp.koza.*;
 import ec.simple.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -157,6 +160,9 @@ public class Regression extends GPProblem implements SimpleProblemForm
             int hits = 0;
             double sum = 0.0;
             double result;
+            
+            Timer timer = new Timer().start();
+            
             for (int y=0;y<trainingSetSize;y++)
                 {
                 currentValue = inputs[y];
@@ -190,11 +196,19 @@ public class Regression extends GPProblem implements SimpleProblemForm
 
                 sum += result;              
                 }
+            
+            timer.stop();
                 
             // the fitness better be KozaFitness!
             KozaFitness f = ((KozaFitness)ind.fitness);
-            f.setStandardizedFitness(state, sum);
+            f.setStandardizedFitness(state,(float)sum);
             f.hits = hits;
+            
+            if(f instanceof FitnessWithTime){
+				FitnessWithTime f_t = (FitnessWithTime) f;
+				f_t.setEvaluation_time(timer.getMicro());
+			}
+            
             ind.evaluated = true;
             }
         }

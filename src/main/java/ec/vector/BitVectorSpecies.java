@@ -37,7 +37,7 @@ import ec.*;
  * BitVectorSpecies provides support for two ways of initializing a gene.  The initialization procedure
  * is determined by the choice of mutation procedure as described above.  If the mutation is floating-point
  * (<tt>reset, gauss, polynomial</tt>), then initialization will be done by resetting the gene
- * to uniformly chosen double floating-point value between the minimum and maximum legal gene values, inclusive.
+ * to uniformly chosen floating-point value between the minimum and maximum legal gene values, inclusive.
  * If the mutation is integer (<tt>integer-reset, integer-random-walk</tt>), then initialization will be done
  * by performing the same kind of reset, but restricting values to integers only.
  * 
@@ -139,11 +139,12 @@ public class BitVectorSpecies extends VectorSpecies
         super.loadParametersForGene(state, index, base, def, postfix);
 
         String mtype = state.parameters.getStringWithDefault(base.push(P_MUTATIONTYPE).push(postfix), def.push(P_MUTATIONTYPE).push(postfix), null);
+        int mutType = -1;
         if (mtype == null) { }  // we're cool
         else if (mtype.equalsIgnoreCase(V_RESET_MUTATION))
-            mutationType[index] = C_RESET_MUTATION; 
+            mutType = mutationType[index] = C_RESET_MUTATION; 
         else if (mtype.equalsIgnoreCase(V_FLIP_MUTATION))
-            mutationType[index] = C_FLIP_MUTATION;
+            mutType = mutationType[index] = C_FLIP_MUTATION;
         else
             state.output.fatal("BitVectorSpecies given a bad mutation type: " + mtype, 
                 base.push(P_MUTATIONTYPE).push(postfix), def.push(P_MUTATIONTYPE).push(postfix));

@@ -99,7 +99,7 @@ public class Semantic extends GPProblem implements SimpleProblemForm
                 }
 
             SimpleFitness f = ((SimpleFitness) ind.fitness);
-            f.setFitness(state, score, false);
+            f.setFitness(state, (float) score, false);
             ind.evaluated = true;
             }
         }
@@ -120,7 +120,9 @@ public class Semantic extends GPProblem implements SimpleProblemForm
         int nterminals = t.child.numNodes(GPNode.NODESEARCH_TERMINALS);
         for (int i = 0; i < nterminals; i++)
             {
-            nodes.add(t.child.nodeInPosition(i, GPNode.NODESEARCH_TERMINALS));
+            GPNodeGatherer g = new GPNodeGatherer();
+            t.child.nodeInPosition(i, g, GPNode.NODESEARCH_TERMINALS);
+            nodes.add(g.node);
             }
 
         if (problemName.equals(P_ORDER))

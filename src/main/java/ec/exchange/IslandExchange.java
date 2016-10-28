@@ -59,7 +59,7 @@ import ec.util.*;
  * reports this to the server.  After everyone has hooked up, the server tells
  * the clients to begin evolution, and they're off and running.
  *
- * <p>Islands send immigrants to other islands by copying good individuals
+ * <p>Islands send emigrants to other islands by copying good individuals
  * (selected with a SelectionMethod) and sending the good individuals to
  * the mailboxes of receiving clients.  Once an individual has been received,
  * it is considered to be unevaluated by the receiving island, even though 
@@ -76,10 +76,10 @@ import ec.util.*;
  * which patiently sits waiting for more individuals.
  *
  * <p>Clients may also be given different start times and modulos for 
- * migrating.  For example, client A might be told that he begins sending immigrants
- * only after generation 6, and then sends immigrants on every 4 generations beyond
+ * migrating.  For example, client A might be told that he begins sending emigrants
+ * only after generation 6, and then sends emigrants on every 4 generations beyond
  * that.  The purpose for the start times and modulos is so that not every client
- * sends immigrants at the same time; this also makes better use of network bandwidth.
+ * sends emigrants at the same time; this also makes better use of network bandwidth.
  *
  * <p>When a client goes down, the other clients deal with it gracefully; they
  * simply stop trying to send to it.  But if the server goes down, the clients
@@ -196,42 +196,42 @@ import ec.util.*;
  <tr><td valign=top><tt><i>base</i>.island.<i>n</i>.num-mig</tt><br>
  <font size=-1>int >= 1</font></td>
  <td valign=top>
- <i>server</i>: The number of islands that island #n sends immigrants to.
+ <i>server</i>: The number of islands that island #n sends emigrants to.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.island.<i>n</i>.mig.</tt><i>m</i><br>
  <font size=-1>int >= 1</font></td>
  <td valign=top>
- <i>server</i>: The ID of island #m that island #n sends immigrants to.
+ <i>server</i>: The ID of island #m that island #n sends emigrants to.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.island.<i>n</i>.size</tt><br>
  <font size=-1>int >= 1</font></td>
  <td valign=top>
- <i>server</i>: The number of immigrants (per subpopulation) that island #n sends to other islands.  If not set, uses the default parameter below.
+ <i>server</i>: The number of emigrants (per subpopulation) that island #n sends to other islands.  If not set, uses the default parameter below.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.size</tt><br>
  <font size=-1>int >= 1</font></td>
  <td valign=top>
- <i>server</i>: Default parameter: number of immigrants (per subpopulation) that a given island sends to other islands.
+ <i>server</i>: Default parameter: number of emigrants (per subpopulation) that a given island sends to other islands.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.island.<i>n</i>.start</tt><br>
  <font size=-1>int >= 0</font></td>
  <td valign=top>
- <i>server</i>: The generation when island #n begins sending immigrants. If not set, uses the default parameter below.
+ <i>server</i>: The generation when island #n begins sending emigrants. If not set, uses the default parameter below.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.start</tt><br>
  <font size=-1>bool = <tt>true</tt> or <tt>false</tt> (default)</font></td>
  <td valign=top>
- <i>server</i>: Default parameter: the generation when an island begins sending immigrants.
+ <i>server</i>: Default parameter: the generation when an island begins sending emigrants.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.island.<i>n</i>.mod</tt><br>
  <font size=-1>int >= 1</font></td>
  <td valign=top>
- <i>server</i>: The number of generations that island #n waits between sending immigrants.  If not set, uses the default parameter below.
+ <i>server</i>: The number of generations that island #n waits between sending emigrants.  If not set, uses the default parameter below.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.mod</tt><br>
  <font size=-1>bool = <tt>true</tt> or <tt>false</tt> (default)</font></td>
  <td valign=top>
- <i>server</i>: Default parameter: The number of generations an island waits between sending immigrants.
+ <i>server</i>: Default parameter: The number of generations an island waits between sending emigrants.
  </td></tr>
  <tr><td valign=top><tt><i>base</i>.island.<i>n</i>.mailbox-capacity</tt><br>
  <font size=-1>int >= 1</font></td>
@@ -339,7 +339,7 @@ public class IslandExchange extends Exchanger
     // SERIALIZE
     public boolean compressedCommunication;
 
-    /** the selection method for immigrants */
+    /** the selection method for emigrants */
     // SERIALIZE
     public SelectionMethod immigrantsSelectionMethod;
 
@@ -376,7 +376,7 @@ public class IslandExchange extends Exchanger
     DataOutputStream[] outWriters;
 
     // so we can print out nice names for our outgoing connections
-    public String[] outgoingIds;
+    String[] outgoingIds;
 
     // information on the availability of the different islands
     boolean[] running;
@@ -456,7 +456,8 @@ public class IslandExchange extends Exchanger
         // of our "EvolutionState"  :-)  you know, things like
         // random number generators or generation numbers!
         
-        EvolutionState myEvolutionState = new EvolutionState();
+        EvolutionState myEvolutionState = new
+            EvolutionState();
         
         myEvolutionState.parameters = parameters;
         myEvolutionState.output = output;
@@ -464,7 +465,8 @@ public class IslandExchange extends Exchanger
         // set me up
         Parameter myBase = new Parameter(EvolutionState.P_EXCHANGER);
 
-        IslandExchange ie = (IslandExchange)parameters.getInstanceForParameterEq(myBase, null, IslandExchange.class);
+        IslandExchange ie = (IslandExchange)parameters.getInstanceForParameterEq(
+            myBase, null, IslandExchange.class);
         
         ie.setup(myEvolutionState,myBase);
         ie.fireUpServer(myEvolutionState,myBase);
@@ -824,7 +826,7 @@ public class IslandExchange extends Exchanger
         // be a new population that I created fresh, or I could modify
         // the existing population and return that.
 
-        // else, check whether the immigrants need to be sent
+        // else, check whether the emigrants need to be sent
         if( ( state.generation >= offset ) &&
             ( ( modulo == 0 ) || ( ( ( state.generation - offset ) % modulo ) == 0 ) ) )
             {
@@ -840,7 +842,7 @@ public class IslandExchange extends Exchanger
                     if( running[x] )
                         {
 
-                        if (chatty) state.output.message( "Sending " + size + " immigrants to island " + outgoingIds[x] );
+                        if (chatty) state.output.message( "Sending " + size + " emigrants to island " + outgoingIds[x] );
 
                         // for each of the subpopulations
                         for( int subpop = 0 ; subpop < state.population.subpops.length ; subpop++ )
@@ -853,13 +855,13 @@ public class IslandExchange extends Exchanger
                             // send different numbers of individuals
                             outWriters[x].writeInt( size );
 
-                            // select "size" individuals and send then to the destination as immigrants
+                            // select "size" individuals and send then to the destination as emigrants
                             immigrantsSelectionMethod.prepareToProduce( state, subpop, 0 );
                             for( int y = 0 ; y < size ; y++ ) // send all necesary individuals
                                 {
                                 int index = immigrantsSelectionMethod.produce( subpop, state, 0 );
-                                process(state, 0, outgoingIds[x], subpop, state.population.subpops[subpop].individuals[index]).writeIndividual( state, outWriters[x] );
-                                // TODO -- should we move this to the end?
+                                state.population.subpops[subpop].individuals[index].
+                                    writeIndividual( state, outWriters[x] );
                                 outWriters[x].flush();  // just in case the individuals didn't do a println
                                 }
                             immigrantsSelectionMethod.finishProducing( state, subpop, 0 ); // end the selection step
@@ -938,31 +940,31 @@ public class IslandExchange extends Exchanger
                     if (chatty) state.output.message( "Immigrating " +  mailbox.nImmigrants[x] + " individuals from mailbox for subpopulation " + x );
 
                     boolean[] selected = new boolean[ state.population.subpops[x].individuals.length ];
-                    int[] indices = new int[ mailbox.nImmigrants[x] ];
+                    int[] indeces = new int[ mailbox.nImmigrants[x] ];
                     for( int i = 0 ; i < selected.length ; i++ )
                         selected[i] = false;
                     indsToDieSelectionMethod.prepareToProduce( state, x, 0 );
                     for( int i = 0 ; i < mailbox.nImmigrants[x] ; i++ )
                         {
                         do {
-                            indices[i] = indsToDieSelectionMethod.produce( x, state, 0 );
-                            } while( selected[indices[i]] );
-                        selected[indices[i]] = true;
+                            indeces[i] = indsToDieSelectionMethod.produce( x, state, 0 );
+                            } while( selected[indeces[i]] );
+                        selected[indeces[i]] = true;
                         }
                     indsToDieSelectionMethod.finishProducing( state, x, 0 );
 
                     // there is no need to check for the differences in size: the mailbox.immigrants,
-                    // state.population.subpops and the mailbox.nextIndexPosition should have the same size
+                    // state.population.subpops and the mailbox.person2die should have the same size
                     for( int y = 0 ; y < mailbox.nImmigrants[x] ; y++ )
                         {
 
                         // read the individual
                         state.population.subpops[x].
-                            individuals[ indices[y] ] = mailbox.immigrants[x][y];
+                            individuals[ indeces[y] ] = mailbox.immigrants[x][y];
 
                         // reset the evaluated flag (the individuals are not evaluated in the current island */
                         state.population.subpops[x].
-                            individuals[ indices[y] ].evaluated = false;
+                            individuals[ indeces[y] ].evaluated = false;
 
                         }
 
@@ -1012,7 +1014,7 @@ public class IslandExchange extends Exchanger
             // (this is the only message the server sends right now), and it should set the flag
             // for exiting next time when in this procedure
             String ww = fromServer.readUTF();
-            if( alreadyReadGoodBye ) // FOUND message sent from the server
+            if( ww != null || alreadyReadGoodBye ) // FOUND message sent from the server
                 {
                 // we should exit because some other individual has
                 // found the perfect fit individual
@@ -1170,14 +1172,14 @@ class IslandExchangeMailbox implements Runnable
     /** How much to wait while synchronizing */
     public static final int SYNCHRONIZATION_SLEEP = 100;
 
-    /**  storage for the incoming immigrants: 2 sizes: the subpopulation and the index of the immigrant */
+    /**  storage for the incoming immigrants: 2 sizes: the subpopulation and the index of the emigrant */
     public Individual[][] immigrants;
 
     /** the number of immigrants in the storage for each of the subpopulations */
     public int[] nImmigrants;
 
     // auxiliary variables to manage the queue storages
-    int[] nextIndexPosition;
+    int[] person2die;
 
     // the socket where it listens for incomming messages
     ServerSocket serverSocket;
@@ -1191,7 +1193,7 @@ class IslandExchangeMailbox implements Runnable
     // the sockets and readers for receiving incoming messages
     Socket[] inSockets;
     DataInputStream[] dataInput;
-    public String[] incomingIds;      // so we can print out nice names for our incoming connections
+    String[] incomingIds;      // so we can print out nice names for our incoming connections
 
     // the state of the islands it is communicating to
     boolean[] running;
@@ -1200,7 +1202,7 @@ class IslandExchangeMailbox implements Runnable
     EvolutionState state;
 
     // synchronization variable
-    boolean[] syncVar = new boolean[1];
+    Boolean syncVar;
 
     // My ID
     String myId;
@@ -1238,14 +1240,14 @@ class IslandExchangeMailbox implements Runnable
         // - immigrants = storage for the immigrants that will come to the current island
         //   - first dimension: the number of subpopulations
         //   - second dimension: how many immigrants to store for each of the subpopulations.
-        // - nextIndexPosition = where to insert next in the queue structure "immigrants"
+        // - person2die = where to insert next in the queue structure "immigrants"
         // - nImmigrants = how many immigrants there are in the storage "immigrants" for each of the subpopulations
         immigrants = new Individual[ numsubpops ][ how_many ];
-        nextIndexPosition = new int[ numsubpops ];
+        person2die = new int[ numsubpops ];
         nImmigrants = new int[ numsubpops ];
 
         // set the synchronization variable to false (it will be set to true to signal exiting the waiting loop)
-        syncVar[0] = false;
+        syncVar = Boolean.FALSE;
 
         // create the ServerSocket to listen to incoming messages
         try
@@ -1381,10 +1383,10 @@ class IslandExchangeMailbox implements Runnable
                             synchronized( immigrants )
                                 {
                                 
-                                // in case the immigrants buffer was emptied, the nextIndexPosition is not reset (it is not public)
+                                // in case the immigrants buffer was emptied, the person2die is not reset (it is not public)
                                 // so we have to reset it now
                                 if( nImmigrants[subpop] == 0 ) // if it was reset
-                                    nextIndexPosition[subpop] = 0; // reset the nextIndexPosition[x]
+                                    person2die[subpop] = 0; // reset the person2die[x]
                                 
                                 // loop in order to receive all the incoming individuals in the current dialogue
                                 for( int ind = 0 ; ind < how_many_to_come ; ind++ )
@@ -1392,16 +1394,17 @@ class IslandExchangeMailbox implements Runnable
                                     // read the individual
                                     try
                                         {
-                                        // read the immigrant in the storage
-                                        immigrants[subpop][nextIndexPosition[subpop]] = state.population.subpops[subpop].species.newIndividual( state, dataInput[x] );
+                                        // read the emigrant in the storage
+                                        immigrants[subpop][person2die[subpop]] = state.population.subpops[subpop].species.
+                                            newIndividual( state, dataInput[x] );
 
                                         //state.output.message( "Individual received." );
                                         
                                         // increase the queue index
-                                        if( nextIndexPosition[subpop] == immigrants[subpop].length - 1 )
-                                            nextIndexPosition[subpop] = 0;
+                                        if( person2die[subpop] == immigrants[subpop].length - 1 )
+                                            person2die[subpop] = 0;
                                         else
-                                            nextIndexPosition[subpop]++;
+                                            person2die[subpop]++;
                                         
                                         // can increment it without synchronization, as we do synchronization on the immigrants
                                         if( nImmigrants[subpop] < immigrants[subpop].length )
@@ -1463,7 +1466,7 @@ class IslandExchangeMailbox implements Runnable
             synchronized( syncVar )
                 {
                 // get the value of the syncVar. If it is true, we should exit.
-                shouldExit = syncVar[0];
+                shouldExit = syncVar.booleanValue();
                 }
             }
         while( !shouldExit );
@@ -1504,14 +1507,14 @@ class IslandExchangeMailbox implements Runnable
         // (hopefully, the information from the server was correct
         synchronized( syncVar )
             {
-            syncVar[0] = true;
+            syncVar = Boolean.TRUE;
             }
 
         }
 
     /**
        Return the port of the ServerSocket (where the islands where the other islands should
-       connect in order to send their immigrants).
+       connect in order to send their emigrants).
     */
     public int getPort()
         {
@@ -1566,10 +1569,10 @@ class IslandExchangeServer implements Runnable
     /** The id */
     public static final String P_ID = "id";
 
-    // The number of islands that will send immigrants to the current island
+    // The number of islands that will send emigrants to the current island
     public static final String P_NUM_INCOMING_MIGRATING_COUNTRIES = "num-incoming-mig";
 
-    /** The number of islands where immigrants will be sent */
+    /** The number of islands where emigrants will be sent */
     public static final String P_NUM_MIGRATING_COUNTRIES = "num-mig";
 
     /** the parameter for migrating islands' ids */
@@ -1581,7 +1584,7 @@ class IslandExchangeServer implements Runnable
     /** The parameter for the modulo (how many generations should pass between consecutive sendings of individuals */
     public static final String P_MODULO = "mod";
 
-    /** The number of immigrants to be sent */
+    /** The number of emigrants to be sent */
     public static final String P_SIZE = "size";
 
     /** How many generations to pass at the beginning of the evolution before the first emigration from the current island */
@@ -1614,7 +1617,7 @@ class IslandExchangeServer implements Runnable
 /** A class indicating all the information the server knows about
     a given island, including its mod, size, offset, and all the
     migrating islands it hooks to, etc. */
-    public static class IslandExchangeIslandInfo
+    public class IslandExchangeIslandInfo
         {
         /** how often to send individuals */
         public int modulo;
@@ -1673,10 +1676,12 @@ class IslandExchangeServer implements Runnable
     /** This setup should get called from the IslandExchange setup method. */
     public void setupServerFromDatabase(final EvolutionState state_p, final Parameter base)
         {
+
         // Store the evolution state for further use in other functions ( ie. run )
         state = state_p;
 
         // Don't bother with getting the default base -- we're a singleton!
+
         Parameter p;
 
         // get the number of islands
@@ -1843,10 +1848,10 @@ state.output.fatal( "Parameter not found, or it has an incorrect value.", p );
                         Integer integer = (Integer)info_immigrants.get( ieii.migrating_island_ids[y] );
                         if( integer == null )
                             info_immigrants.put( ieii.migrating_island_ids[y],
-                                Integer.valueOf(1));
+                                new Integer(1) );
                         else
                             info_immigrants.put( ieii.migrating_island_ids[y],
-                                Integer.valueOf( integer.intValue() + 1 ) );
+                                new Integer( integer.intValue() + 1 ) );
                         }
                     }
                 }
@@ -2179,25 +2184,21 @@ state.output.fatal( "Parameter not found, or it has an incorrect value.", p );
                         continue;
                         }
 
-                    // this will always be non-null
-                    /*
-                      if ( ww == null )  // the connection has been broken
-                      {
-                      state.output.message("Server: Island " + island_ids[x] + " dropped connection");
-                      clientRunning[x] = false;
-                      try
-                      {
-                      dataIn[x].close();
-                      dataOut[x].close();
-                      con[x].close();
-                      }
-                      catch( IOException e )
-                      {
-                      }
-                      }
-                      else 
-                    */
-                    if( ww.equals( FOUND ) ) // he found it!
+                    if ( ww == null )  // the connection has been broken
+                        {
+                        state.output.message("Server: Island " + island_ids[x] + " dropped connection");
+                        clientRunning[x] = false;
+                        try
+                            {
+                            dataIn[x].close();
+                            dataOut[x].close();
+                            con[x].close();
+                            }
+                        catch( IOException e )
+                            {
+                            }
+                        }
+                    else if( ww.equals( FOUND ) ) // he found it!
                         {
                         // inform everyone that they need to shut down --
                         // we do not need to wrap
@@ -2270,41 +2271,5 @@ state.output.fatal( "Parameter not found, or it has an incorrect value.", p );
         return thread;
         }
 
-        
-    public static final int ISLAND_INDEX_LOOKUP_FAILED = -1;
-    public static final Parameter islandIndexBase = new Parameter("exch.island");
-    public static final Parameter islandIndexNumIslands = new Parameter("exch.num-islands");
-
-    /** Looks up the island id in the parameter database, assuming something like
-        exch.island.1.id = GilligansIsland
-        Then returns the index number (in the example before, this would be 1).
-        If there is no such island in the parameter database using this parameter
-        format, then returns ISLAND_INDEX_LOOKUP_FAILED and issues a one-time warning.  
-        NOTE: This algorithm is O(n) for the number of
-        islands.  No, it's not fast, but with a small number of islands, it's not a big
-        deal.
-    */ 
-    public int getIslandIndex(EvolutionState state, String id)
-        {
-        int num = state.parameters.getInt(islandIndexNumIslands, null, 0);
-        if (num < 0) // uh oh
-            {
-            state.output.warnOnce("IslandExchange.islandIndex could not find the number of islands", islandIndexNumIslands, null );
-            return ISLAND_INDEX_LOOKUP_FAILED;
-            }
-                        
-        for(int i = 0; i < num; i++)
-            {
-            Parameter b = islandIndexBase.push("" + i).push("id");
-            String island = state.parameters.getString(b, null);
-            if (island == null)
-                state.output.warnOnce("IslandExchange.islandIndex could not find island number " + i, b, null);
-            else if (island.equals(id))
-                return i;
-            }
-                        
-        state.output.warnOnce("IslandExchange.islandIndex could not find any island called " + id);
-        return ISLAND_INDEX_LOOKUP_FAILED;
-        }
     }
 

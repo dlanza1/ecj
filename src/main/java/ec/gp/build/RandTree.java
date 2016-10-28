@@ -25,7 +25,7 @@ public class RandTree extends GPNodeBuilder
 
     LinkedList permutations;
 
-    public static class ArityObject extends Object
+    private class ArityObject extends Object
         {
         public int arity;
         public ArityObject(int a) { arity=a; }
@@ -47,7 +47,7 @@ public class RandTree extends GPNodeBuilder
         }
 
     // Added method to enhance linked list functionality with ArityObject
-    boolean contains(LinkedList initArities,int a)
+    private boolean contains(LinkedList initArities,int a)
         {
         boolean truth=false;
         int counter=0;
@@ -63,7 +63,7 @@ public class RandTree extends GPNodeBuilder
         return truth;
         }
 
-    void remove(LinkedList initArities,int a)
+    private void remove(LinkedList initArities,int a)
         {
         int counter=0;
         boolean removed=false;
@@ -126,13 +126,13 @@ public class RandTree extends GPNodeBuilder
         aritySetupDone=true;
         }
 
-    long fact(long num)
+    private long fact(long num)
         {
         if (num==0) { return 1; }
         else { return num*fact(num-1); }
         }
 
-    int[] select(LinkedList permutations,int size)
+    private int[] select(LinkedList permutations,int size)
         {
         int counter1,counter2,total=0;
         long residue,denominator=1;
@@ -205,7 +205,7 @@ public class RandTree extends GPNodeBuilder
         }
 
     // recursive function to work out all combinations and push them onto ArrayList
-    void Permute(int current,int[] sol,int size)
+    private void Permute(int current,int[] sol,int size)
         {
         int counter=0,result=0;
         // base case
@@ -249,8 +249,8 @@ public class RandTree extends GPNodeBuilder
         int counter,choices,choice,pos,arity=0,checksum=0,size=0;
         int[] scheme=new int[s.length];
 
-        String dyck="";
-        String addStr="";
+        String dyck=new String("");
+        String addStr=new String();
 
         scheme=s;
         for(counter=0;counter<scheme.length;counter++)
@@ -326,27 +326,29 @@ public class RandTree extends GPNodeBuilder
         {
         int counter=0;
         boolean underflow=false;
-        String stack="";
+        String stack=new String();
         while ((counter<dyck.length()) && (!underflow))
             {
             switch (dyck.charAt(counter))
                 {
                 case 'x':
-                    stack=stack.concat("x");
-                    break;
+                {
+                stack=stack.concat("x");
+                break;
+                }
                 case 'y':
-                    if (stack.length()<=1)
-                        {
-                        underflow=true;
-                        stack="";
-                        }
-                    else
-                        {
-                        stack=stack.substring(0,stack.length()-1);
-                        }
-                    break;
-                default:  // cannot happen
-                    throw new RuntimeException("default case should never be able to occur");
+                {
+                if (stack.length()<=1)
+                    {
+                    underflow=true;
+                    stack="";
+                    }
+                else
+                    {
+                    stack=stack.substring(0,stack.length()-1);
+                    }
+                break;
+                }
                 }
             counter++;
             }
@@ -361,7 +363,7 @@ public class RandTree extends GPNodeBuilder
         }
 
     // This function parses the dyck word and puts random nodes into their slots.
-    GPNode buildTree(final EvolutionState state,
+    private GPNode buildTree(final EvolutionState state,
         final int thread,
         final GPNodeParent parent,
         final int argposition,

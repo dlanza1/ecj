@@ -98,7 +98,7 @@ public class SteadyStateEvolutionState extends EvolutionState
         if (!(exchanger instanceof SteadyStateExchangerForm))
             state.output.error("You've chosen to use Steady-State Evolution, but your exchanger does not implement the SteadyStateExchangerForm.",base);
         
-        checkStatistics(state, statistics, new Parameter(P_STATISTICS));
+        checkStatistics(state, statistics, base);
         
         if (parameters.exists(SteadyStateDefaults.base().push(P_REPLACEMENT_PROBABILITY),null))
             {
@@ -276,7 +276,7 @@ public class SteadyStateEvolutionState extends EvolutionState
             }
 
         // SHOULD WE QUIT?
-        if (!partiallyFullSubpop && ((SteadyStateEvaluator)evaluator).runComplete(this, ind) && quitOnRunComplete)
+        if (!partiallyFullSubpop && evaluator.runComplete(this) && quitOnRunComplete)
             { 
             output.message("Found Ideal Individual"); 
             return R_SUCCESS;
@@ -285,10 +285,6 @@ public class SteadyStateEvolutionState extends EvolutionState
         if ((numEvaluations > UNDEFINED && evaluations >= numEvaluations) ||  // using numEvaluations
             (numEvaluations <= UNDEFINED && generationBoundary && generation == numGenerations -1))  // not using numEvaluations
             {
-            // we are not exchanging again, but we might wish to increment the generation
-            // one last time if we hit a generation boundary
-            if (generationBoundary)
-                generation++;
             return R_FAILURE;
             }
                 
@@ -333,10 +329,7 @@ public class SteadyStateEvolutionState extends EvolutionState
         /* finish up -- we completed. */
         ((SteadyStateBreeder)breeder).finishPipelines(this);
         if (!justCalledPostEvaluationStatistics)
-            {
-            output.message("Generation " + generation +"\tEvaluations " + evaluations);
             statistics.postEvaluationStatistics(this);
-            }
         statistics.finalStatistics(this,result);
         finisher.finishPopulation(this,result);
         exchanger.closeContacts(this,result);

@@ -7,6 +7,7 @@
 
 package ec;
 
+
 /* 
  * SelectionMethod.java
  * 
@@ -28,6 +29,7 @@ package ec;
  * @version 1.0 
  */
 
+@SuppressWarnings("serial")
 public abstract class SelectionMethod extends BreedingSource
     {
     public static final int INDS_PRODUCED = 1;
@@ -84,7 +86,50 @@ public abstract class SelectionMethod extends BreedingSource
     public abstract int produce(final int subpopulation,
         final EvolutionState state,
         final int thread);
+    
+    public int produce(
+    	final int first_ind_group,
+    	final int last_ind_group,
+    	final int min, 
+        final int max, 
+        final int start,
+        final int subpopulation,
+        final Individual[] inds,
+        final EvolutionState state,
+        final int thread)
+        {
+        int n=INDS_PRODUCED;
+        if (n<min) n = min;
+        if (n>max) n = max;
+        
+        for(int q=0;q<n;q++)
+            inds[start+q] = state.population.subpops[subpopulation].
+                individuals[produce(subpopulation, first_ind_group, last_ind_group, state,thread)];
+        return n;
     }
+    
+    /** An alternative form of "produce" special to Selection Methods;
+        selects an individual from the given subpopulation and 
+        returns its position in that subpopulation. 
+     * @throws Exception */
+    public int produce(
+    	final int subpopulation,
+    	final int first_ind_group,
+        final int last_ind_group,
+        final EvolutionState state,
+        final int thread){
+    	
+    	try {
+			throw new Exception("This methos must not be used if you want to use groups.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		return 0;
+    }
+    
+}
 
 
 

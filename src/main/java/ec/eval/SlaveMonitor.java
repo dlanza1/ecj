@@ -42,23 +42,9 @@ public class SlaveMonitor
     public static final String P_EVALMASTERPORT = "eval.master.port";
     public static final String P_EVALCOMPRESSION = "eval.compression";
     public static final String P_MAXIMUMNUMBEROFCONCURRENTJOBSPERSLAVE = "eval.masterproblem.max-jobs-per-slave";
-    public static final String P_RESCHEDULELOSTJOBS = "eval.masterproblem.reschedule-lost-jobs";
     public static final int SEED_INCREMENT = 7919; // a large value (prime for fun) bigger than expected number of threads per slave
 
     public EvolutionState state;
-    
-    // set to true if slave connections should reschedule jobs before they are
-    // completely shut down due to a lost slave.  We might not want this to
-    // happen if we're doing asynchronous evolution, for example.  Do NOT
-    // set this to true if you're doing generational evolution, it'll just
-    // hang waiting for a (now-un-rescheduled) lost job.
-    boolean rescheduleLostJobs;
-    
-    ThreadPool pool;
-    
-    /** A counter used to give slaves unique numbers so they can construct
-        useful unique names for themselves. */
-    int slaveNum = 0;
     
     /**
      *  The socket where slaves connect.
@@ -82,11 +68,7 @@ public class SlaveMonitor
         {
         try
             {
-            if (Thread.interrupted()) { return false; }
-            else synchronized(monitor)
-                     {
-                     monitor.wait();
-                     }
+            monitor.wait();
             }
         catch (InterruptedException e) { return false; }
         return true;
@@ -98,10 +80,10 @@ public class SlaveMonitor
         }
 
     // the slaves (not really a queue)
-    LinkedList allSlaves = new LinkedList();
+    private LinkedList allSlaves = new LinkedList();
 
     // the available slaves
-    LinkedList availableSlaves = new LinkedList();
+    private LinkedList availableSlaves = new LinkedList();
 
     // the maximum number of jobs per slave
     int maxJobsPerSlave;
@@ -124,16 +106,12 @@ public class SlaveMonitor
         {
         this.showDebugInfo = showDebugInfo;
         this.state = state;
-        
-        pool = new ThreadPool();
                 
         int port = state.parameters.getInt(
             new Parameter( P_EVALMASTERPORT ),null);
                 
         maxJobsPerSlave = state.parameters.getInt(
             new Parameter( P_MAXIMUMNUMBEROFCONCURRENTJOBSPERSLAVE ),null);
-
-        rescheduleLostJobs = state.parameters.getBoolean(new Parameter(P_RESCHEDULELOSTJOBS), null, true);
 
         useCompression = state.parameters.getBoolean(new Parameter(P_EVALCOMPRESSION),null,false);
                 
@@ -194,12 +172,6 @@ public class SlaveMonitor
                                                                                                         
                         dataIn = new DataInputStream(tmpIn);
                         dataOut = new DataOutputStream(tmpOut);
-                        
-                        // write unique integer
-                        dataOut.writeInt(slaveNum++);
-                        dataOut.flush();
-                        
-                        // read slave name
                         String slaveName = dataIn.readUTF();
 
                         dataOut.writeInt(randomSeed);
@@ -212,10 +184,8 @@ public class SlaveMonitor
                         problemPrototype.sendAdditionalData(state, dataOut);
                         dataOut.flush();
                                                 
-                        if (registerSlave(state, slaveName, slaveSock, dataOut, dataIn))
-                            state.output.systemMessage( "Slave " + slaveName + " connected successfully." );
-                        else
-                            state.output.systemMessage( "Slave " + slaveName + " not permitted to connect." );
+                        registerSlave(state, slaveName, slaveSock, dataOut, dataIn);
+                        state.output.systemMessage( "Slave " + slaveName + " connected successfully." );
                         }
                     catch (IOException e) {  }
                     }
@@ -229,31 +199,20 @@ public class SlaveMonitor
     /**
        Registers a new slave with the monitor.  Upon registration, a slave is marked as available for jobs.
     */
-    public boolean registerSlave( EvolutionState state, String name, Socket socket, DataOutputStream out, DataInputStream in)
+    public void registerSlave( EvolutionState state, String name, Socket socket, DataOutputStream out, DataInputStream in)
         {
-        if (isShutdownInProgress())  // no more registrations.  Kill the socket
-            {
-            try { out.writeByte(Slave.V_SHUTDOWN); } catch (Exception e) { }  // exception, not IOException, because JZLib throws some array exceptions
-            try { out.flush(); } catch (Exception e) { }
-            try { out.close(); } catch (Exception e) { }
-            try { in.close(); } catch (Exception e) { }
-            try { socket.close(); } catch (IOException e) { }
-            return false;
-            }
-        
         SlaveConnection newSlave = new SlaveConnection( state, name, socket, out, in, this );
         
-        synchronized(allSlaves)
-            {
-            allSlaves.addLast(newSlave);
-            notifyMonitor(allSlaves);
-            }
         synchronized(availableSlaves)
             {
             availableSlaves.addLast(newSlave);
             notifyMonitor(availableSlaves);
             }
-        return true;
+        synchronized(allSlaves)
+            {
+            allSlaves.addLast(newSlave);
+            notifyMonitor(allSlaves);
+            }
         }
 
     /**
@@ -263,19 +222,13 @@ public class SlaveMonitor
         {
         synchronized(allSlaves)
             {
-            if (allSlaves.contains(slave))  // could have been removed if shutdown is in progress
-                {
-                allSlaves.remove(slave);
-                notifyMonitor(allSlaves);
-                }
+            allSlaves.remove(slave);
+            notifyMonitor(allSlaves);
             }
         synchronized(availableSlaves)
             {
-            if (availableSlaves.contains(slave))  // could have been removed if shutdown is in progress
-                {
-                availableSlaves.remove(slave);
-                notifyMonitor(availableSlaves);
-                }
+            availableSlaves.remove(slave);
+            notifyMonitor(availableSlaves);
             }
         }
 
@@ -297,29 +250,16 @@ public class SlaveMonitor
         try { thread.join(); }
         catch (InterruptedException e) { }
         
-        debug("Main Monitor Thread Shut Down");
         // gather all the slaves
         
-        while(true)
-            {
-            SlaveConnection sc = null;
-            synchronized(allSlaves)
-                {
-                if (allSlaves.isEmpty()) break;
-                sc = (SlaveConnection)(allSlaves.removeFirst());
-                }
-            debug("Shutting Down Slave" + sc);
-            if (sc != null) 
-                sc.shutdown(state);  // it better not be null!
-            debug("Shut Down Slave" + sc);
-            }
         synchronized(allSlaves)
             {
+            while( !allSlaves.isEmpty() )
+                {
+                ((SlaveConnection)(allSlaves.removeFirst())).shutdown(state);
+                }
             notifyMonitor(allSlaves);
             }
-
-        pool.killAll();  // clean up the thread pool
-        debug("Shut Down Completed");
         }
 
     /**
@@ -495,7 +435,7 @@ public class SlaveMonitor
      * @param s checkpoint file output stream
      * @throws IOException
      */
-    void writeObject(ObjectOutputStream out) throws IOException
+    private void writeObject(ObjectOutputStream out) throws IOException
         {
         state.output.fatal("Not implemented yet: SlaveMonitor.writeObject");
         }
@@ -505,7 +445,7 @@ public class SlaveMonitor
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
         {
         state.output.fatal("Not implemented yet: SlaveMonitor.readObject");
         }

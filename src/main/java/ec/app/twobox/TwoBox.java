@@ -161,7 +161,7 @@ public class TwoBox extends GPProblem implements SimpleProblemForm
                 
             // the fitness better be KozaFitness!
             KozaFitness f = ((KozaFitness)ind.fitness);
-            f.setStandardizedFitness(state, sum);
+            f.setStandardizedFitness(state,(float)sum);
             f.hits = hits;
             ind.evaluated = true;
             }

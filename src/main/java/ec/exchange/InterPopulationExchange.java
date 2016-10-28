@@ -347,7 +347,7 @@ public class InterPopulationExchange extends Exchanger
                         // copy the individual to the mailbox of the destination subpopulation
                         immigrants[ exchangeInformation[i].destinations[x] ]
                             [ nImmigrants[ exchangeInformation[i].destinations[x] ] ] =
-                            process(state, 0, null, exchangeInformation[i].destinations[x], (Individual) state.population.subpops[ i ].individuals[ index ].clone());
+                            state.population.subpops[ i ].individuals[ index ];
                         // increment the counter with the number of individuals in the mailbox
                         nImmigrants[ exchangeInformation[i].destinations[x] ]++;
                         }
@@ -359,7 +359,7 @@ public class InterPopulationExchange extends Exchanger
         return state.population;
 
         }
-        
+
 
     public Population postBreedingExchangePopulation(EvolutionState state)
         {
@@ -383,27 +383,27 @@ public class InterPopulationExchange extends Exchanger
                     len +").  This would cause an infinite loop in the selection-to-die procedure.");
 
             boolean[] selected = new boolean[ len ];
-            int[] indices = new int[ nImmigrants[x] ];
+            int[] indeces = new int[ nImmigrants[x] ];
             for( int i = 0 ; i < selected.length ; i++ )
                 selected[i] = false;
             exchangeInformation[x].indsToDieSelectionMethod.prepareToProduce( state, x, 0 );
             for( int i = 0 ; i < nImmigrants[x] ; i++ )
                 {
                 do {
-                    indices[i] = exchangeInformation[x].indsToDieSelectionMethod.produce( x, state, 0 );
-                    }
-                while( selected[indices[i]] );
-                selected[indices[i]] = true;
+                    indeces[i] = exchangeInformation[x].indsToDieSelectionMethod.produce( x, state, 0 );
+                    } while( selected[indeces[i]] );
+                selected[indeces[i]] = true;
                 }
             exchangeInformation[x].indsToDieSelectionMethod.finishProducing( state, x, 0 );
 
             for( int y = 0 ; y < nImmigrants[x] ; y++ )
                 {
+
                 // read the individual
-                state.population.subpops[x].individuals[ indices[y] ] = immigrants[x][y];
+                state.population.subpops[x].individuals[ indeces[y] ] = immigrants[x][y];
 
                 // reset the evaluated flag (the individuals are not evaluated in the current island */
-                state.population.subpops[x].individuals[ indices[y] ].evaluated = false;
+                state.population.subpops[x].individuals[ indeces[y] ].evaluated = false;
 
                 }
 
@@ -415,8 +415,6 @@ public class InterPopulationExchange extends Exchanger
         return state.population;
 
         }
-
-
 
     /** Called after preBreedingExchangePopulation(...) to evaluate whether or not
         the exchanger wishes the run to shut down (with ec.EvolutionState.R_FAILURE).

@@ -57,11 +57,11 @@ import ec.util.*;
    <td valign=top>(the minimum allowed size of a child)</td></tr>
 
    <tr><td valign=top><i>base</i>.<tt>min-crossover-percent</tt><br>
-   <font size=-1>0 (default) &lt;= double &lt;= 1</font></td>
+   <font size=-1>0 (default) &lt;= float &lt;= 1</font></td>
    <td valign=top>(the minimum percentage of an individual that may be removed during crossover)</td></tr>
 
    <tr><td valign=top><i>base</i>.<tt>max-crossover-percent</tt><br>
-   <font size=-1>0 &lt;= double &lt;= 1 (default)</font></td>
+   <font size=-1>0 &lt;= float &lt;= 1 (default)</font></td>
    <td valign=top>(the maximum percentage of an individual that may be removed during crossover)</td></tr>
 
    </table>
@@ -86,10 +86,10 @@ public class ListCrossoverPipeline extends BreedingPipeline
     public int crossoverType;
     public int minChildSize;
     public int numTries;
-    public double minCrossoverPercentage;
-    public double maxCrossoverPercentage;
+    public float minCrossoverPercentage;
+    public float maxCrossoverPercentage;
     
-    protected VectorIndividual parents[];
+    VectorIndividual parents[];
     
     public ListCrossoverPipeline() { parents = new VectorIndividual[2]; }
     public Parameter defaultBase() { return VectorDefaults.base().push(P_LIST_CROSSOVER); }
@@ -118,9 +118,9 @@ public class ListCrossoverPipeline extends BreedingPipeline
         numTries = state.parameters.getIntWithDefault(base.push(P_NUM_TRIES),
             def.push(P_NUM_TRIES), 1);
                                                          
-        minCrossoverPercentage = state.parameters.getDoubleWithDefault(base.push(P_MIN_CROSSOVER_PERCENT),
+        minCrossoverPercentage = state.parameters.getFloatWithDefault(base.push(P_MIN_CROSSOVER_PERCENT),
             def.push(P_MIN_CROSSOVER_PERCENT), 0.0);
-        maxCrossoverPercentage = state.parameters.getDoubleWithDefault(base.push(P_MAX_CROSSOVER_PERCENT),
+        maxCrossoverPercentage = state.parameters.getFloatWithDefault(base.push(P_MAX_CROSSOVER_PERCENT),
             def.push(P_MAX_CROSSOVER_PERCENT), 1.0);
                                                          
 
@@ -163,14 +163,14 @@ public class ListCrossoverPipeline extends BreedingPipeline
         if(minCrossoverPercentage < 0.0 || minCrossoverPercentage > 1.0)
             {
             state.output.error("ListCrossoverPipeline:\n" +
-                "   Parameter min-crossover-percent is currently equal to: " + Double.toString(minCrossoverPercentage) + "\n" +
-                "   min-crossover-percent must be either a real-value double float between [0.0, 1.0] or left unspecified\n");
+                "   Parameter min-crossover-percent is currently equal to: " + Float.toString(minCrossoverPercentage) + "\n" +
+                "   min-crossover-percent must be either a real-value float between [0.0, 1.0] or left unspecified\n");
             }
         if(maxCrossoverPercentage < 0.0 || maxCrossoverPercentage > 1.0)
             {
             state.output.error("ListCrossoverPipeline:\n" +
-                "   Parameter max-crossover-percent is currently equal to: " + Double.toString(maxCrossoverPercentage) + "\n" +
-                "   max-crossover-percent must be either a real-value double float between [0.0, 1.0] or left unspecified\n");
+                "   Parameter max-crossover-percent is currently equal to: " + Float.toString(maxCrossoverPercentage) + "\n" +
+                "   max-crossover-percent must be either a real-value float between [0.0, 1.0] or left unspecified\n");
             }
         if(minCrossoverPercentage > maxCrossoverPercentage)
             {
@@ -181,7 +181,7 @@ public class ListCrossoverPipeline extends BreedingPipeline
             {
             state.output.warning("ListCrossoverPipeline:\n" +
                 "   Parameter min-crossover-percent and max-crossover-percent are currently equal to: " + 
-                Double.toString(minCrossoverPercentage) + "\n" +
+                Float.toString(minCrossoverPercentage) + "\n" +
                 "   This effectively prevents any crossover from occurring\n");
             }
         }
@@ -236,18 +236,19 @@ public class ListCrossoverPipeline extends BreedingPipeline
                     parents[1] = (VectorIndividual)(parents[1].clone());
                 }
                 
+                
             // determines size of parents, in terms of chunks
             int chunk_size = ((VectorSpecies)(parents[0].species)).chunksize;  
-            int[] size = new int[2];  // sizes of parents
+            int[] size = new int[2];
             size[0] = (int)parents[0].genomeLength();
             size[1] = (int)parents[1].genomeLength();      
-            int[] size_in_chunks = new int[2];   // sizes of parents by chunk (if chunk == 1, this is just size[])
+            int[] size_in_chunks = new int[2];
             size_in_chunks[0] = size[0]/chunk_size;
             size_in_chunks[1] = size[1]/chunk_size;
             
             // variables used to split & join the children
-            int[] min_chunks = new int[2];  // the minimum number of chunks permitted 
-            int[] max_chunks = new int[2];  // the maximum number of chunks permitted
+            int[] min_chunks = new int[2];
+            int[] max_chunks = new int[2];
             int[][] split = new int[2][2];
             Object[][] pieces = new Object[2][3];
             
@@ -262,8 +263,6 @@ public class ListCrossoverPipeline extends BreedingPipeline
                     }
                 max_chunks[i] = (int)(size_in_chunks[i]*maxCrossoverPercentage);
                 }
-
-            Object validationData = computeValidationData(state, parents, thread);
             
             // attempt 'num-tries' times to produce valid children (which are bigger than min-child-size)
             boolean valid_children = false;
@@ -286,37 +285,22 @@ public class ListCrossoverPipeline extends BreedingPipeline
                         }
                     }
                
-                else if(crossoverType == VectorSpecies.C_TWO_POINT)  // Note that NOOPs are permissible
+                // generate split indices for two-point (both indicies have randomized positions)
+                else if(crossoverType == VectorSpecies.C_TWO_POINT)
                     {
                     for(int i = 0; i < 2; i++)
                         {
-                        while(true)  // we'll do rejection sampling for two point.  It's slower, maybe much slower, but uniform
-                            {
-                            split[i][0] = state.random[thread].nextInt(size_in_chunks[i] + 1);  // can go clear to end
-                            split[i][1] = state.random[thread].nextInt(size_in_chunks[i] + 1);  // likewise
-                                
-                            if (split[i][0] > split[i][1])  // swap so 0 is before 1
-                                {
-                                int temp = split[i][0];
-                                split[i][0] = split[i][1];
-                                split[i][1] = temp;
-                                }
-                                        
-                            int len = split[i][0] - split[i][1];
-                            if (len >= min_chunks[i] && len <= max_chunks[i])  // okay
-                                {
-                                split[i][0] *= chunk_size;
-                                split[i][1] *= chunk_size;
-                                break;
-                                }
-                            attempts++;
-                            if (attempts > numTries) break;  // uh oh
-                            }
+                        // select first split index randomly
+                        split[i][0] = state.random[thread].nextInt(size_in_chunks[i] - min_chunks[i]);
+                        // second index must be at least 'min_chunks' after the first index
+                        split[i][1] = split[i][0] + min_chunks[i];
+                        // add a random value up to max crossover size, without exceeding size of the parent
+                        split[i][1] += state.random[thread].nextInt(Math.min(max_chunks[i] - min_chunks[i], size_in_chunks[i] - split[i][0]));
+                        // convert split from chunk numbers to array indices
+                        split[i][0] *= chunk_size;
+                        split[i][1] *= chunk_size;
                         }
                     }
-                else state.output.fatal("Unknown crossover type specified: " + crossoverType);  // shouldn't ever happen
-               
-                if (attempts >= numTries) break;  // failed in two-point selection
                
                 // use the split indices generated above to split the parents into pieces
                 parents[0].split(split[0], pieces[0]);
@@ -339,7 +323,7 @@ public class ListCrossoverPipeline extends BreedingPipeline
                     
                 children[0].join(pieces[0]);
                 children[1].join(pieces[1]);
-                if(children[0].genomeLength() > minChildSize && children[1].genomeLength() > minChildSize && isValidated(split, validationData))
+                if(children[0].genomeLength() > minChildSize && children[1].genomeLength() > minChildSize)
                     {
                     valid_children = true;
                     }
@@ -365,22 +349,8 @@ public class ListCrossoverPipeline extends BreedingPipeline
             } 
         
         return n;
-        }    
+        }
     
-    /** A hook called by ListCrossoverPipeline to allow subclasses to prepare for additional validation testing. 
-        Primarily used by GECrossoverPipeline.  */ 
-    public Object computeValidationData(EvolutionState state, VectorIndividual[] parents, int thread)
-        {
-        return null;
-        }
-
-    /** A hook called by ListCrossoverPipeline to allow subclasses to further validate children crossover points. 
-        Primarily used by GECrossoverPipeline.  */ 
-    public boolean isValidated(int[][] split, Object validationData)
-        {
-        return true;
-        }
-
     }
     
     

@@ -119,26 +119,12 @@ public class GeneVectorIndividual extends VectorIndividual
         Gene tmp;
         int point;
 
-        int len = Math.min(genome.length, i.genome.length);
-        if (len != genome.length || len != i.genome.length)
-            state.output.warnOnce("Genome lengths are not the same.  Vector crossover will only be done in overlapping region.");
-
+        if (genome.length != i.genome.length)
+            state.output.fatal("Genome lengths are not the same for fixed-length vector crossover");
         switch(s.crossoverType)
             {
             case VectorSpecies.C_ONE_POINT:
-//                point = state.random[thread].nextInt((len / s.chunksize)+1);
-                // we want to go from 0 ... len-1 
-                // so that there is only ONE case of NO-OP crossover, not TWO
-                point = state.random[thread].nextInt((len / s.chunksize));
-                for(int x=0;x<point*s.chunksize;x++)
-                    { 
-                    tmp = i.genome[x];
-                    i.genome[x] = genome[x]; 
-                    genome[x] = tmp; 
-                    }
-                break;
-            case VectorSpecies.C_ONE_POINT_NO_NOP:
-                point = state.random[thread].nextInt((len / s.chunksize) - 1) + 1;  // so it goes from 1 .. len-1
+                point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
                 for(int x=0;x<point*s.chunksize;x++)
                     { 
                     tmp = i.genome[x];
@@ -147,51 +133,18 @@ public class GeneVectorIndividual extends VectorIndividual
                     }
                 break;
             case VectorSpecies.C_TWO_POINT: 
-            {
-//                int point0 = state.random[thread].nextInt((len / s.chunksize)+1);
-//                point = state.random[thread].nextInt((len / s.chunksize)+1);
-            // we want to go from 0 to len-1
-            // so that the only NO-OP crossover possible is point == point0
-            // example; len = 4
-            // possibilities: a=0 b=0       NOP                             [0123]
-            //                                a=0 b=1       swap 0                  [for 1, 2, 3]
-            //                                a=0 b=2       swap 0, 1               [for 2, 3]
-            //                                a=0 b=3       swap 0, 1, 2    [for 3]
-            //                                a=1 b=1       NOP                             [1230]
-            //                                a=1 b=2       swap 1                  [for 2, 3, 0]
-            //                                a=1 b=3       swap 1, 2               [for 3, 0]
-            //                                a=2 b=2       NOP                             [2301]
-            //                                a=2 b=3       swap 2                  [for 3, 0, 1]
-            //                                a=3 b=3   NOP                         [3012]
-            // All intervals: 0, 01, 012, 0123, 1, 12, 123, 1230, 2, 23, 230, 2301, 3, 30, 301, 3012
-            point = state.random[thread].nextInt((len / s.chunksize));
-            int point0 = state.random[thread].nextInt((len / s.chunksize));
-            if (point0 > point) { int p = point0; point0 = point; point = p; }
-            for(int x=point0*s.chunksize;x<point*s.chunksize;x++)
-                {
-                tmp = i.genome[x];
-                i.genome[x] = genome[x];
-                genome[x] = tmp;
-                }
-            }
-            break;
-            case VectorSpecies.C_TWO_POINT_NO_NOP: 
-            {
-            point = state.random[thread].nextInt((len / s.chunksize));
-            int point0 = 0;
-            do { point0 = state.random[thread].nextInt((len / s.chunksize)); }
-            while (point0 == point);  // NOP
-            if (point0 > point) { int p = point0; point0 = point; point = p; }
-            for(int x=point0*s.chunksize;x<point*s.chunksize;x++)
-                {
-                tmp = i.genome[x];
-                i.genome[x] = genome[x];
-                genome[x] = tmp;
-                }
-            }
-            break;
+                int point0 = state.random[thread].nextInt((genome.length / s.chunksize)+1);
+                point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
+                if (point0 > point) { int p = point0; point0 = point; point = p; }
+                for(int x=point0*s.chunksize;x<point*s.chunksize;x++)
+                    {
+                    tmp = i.genome[x];
+                    i.genome[x] = genome[x];
+                    genome[x] = tmp;
+                    }
+                break;
             case VectorSpecies.C_ANY_POINT:
-                for(int x=0;x<len/s.chunksize;x++) 
+                for(int x=0;x<genome.length/s.chunksize;x++) 
                     if (state.random[thread].nextBoolean(s.crossoverProbability))
                         for(int y=x*s.chunksize;y<(x+1)*s.chunksize;y++)
                             {
@@ -245,7 +198,7 @@ public class GeneVectorIndividual extends VectorIndividual
         GeneVectorSpecies s = (GeneVectorSpecies) species;
         for(int x=0;x<genome.length;x++)
             {
-            if (state.random[thread].nextBoolean(s.mutationProbability(x)))
+            if (state.random[thread].nextBoolean(s.mutationProbability[x]))
                 {
                 if (s.duplicateRetries(x) <= 0)  // a little optimization
                     {

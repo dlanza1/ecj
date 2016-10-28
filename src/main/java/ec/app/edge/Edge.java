@@ -209,7 +209,7 @@ public class Edge extends GPProblem implements SimpleProblemForm
 
 
 
-    //    public boolean[][] slurp(final File f) throws IOException
+//    public boolean[][] slurp(final File f) throws IOException
     public boolean[][] slurp(final InputStream f) throws IOException
         {
         //LineNumberReader r = new LineNumberReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(f))));
@@ -387,7 +387,7 @@ public class Edge extends GPProblem implements SimpleProblemForm
     public boolean test(final boolean[] sample)
         {
         final boolean STATE_1 = false;
-        //        final boolean STATE_2 = true;
+//        final boolean STATE_2 = true;
         boolean st = STATE_1;
         
         // set initial state
@@ -535,9 +535,6 @@ public class Edge extends GPProblem implements SimpleProblemForm
                 case EPSILON:
                     epsilon[from[y]][epsilon_l[from[y]]++]=to[y];
                     break;
-                default:
-                    state.output.fatal("Invalid case " + reading[y] + " in Edge.fullTest()");
-                    break;
                 }
         
         // create the states
@@ -584,7 +581,7 @@ public class Edge extends GPProblem implements SimpleProblemForm
 
         if (!ind.evaluated)  // don't bother reevaluating
             {
-            //EdgeData input = (EdgeData)(this.input);
+            EdgeData input = (EdgeData)(this.input);
 
             fullTest(state,ind,threadnum,posT,negT);
             // the fitness better be KozaFitness!
@@ -593,17 +590,17 @@ public class Edge extends GPProblem implements SimpleProblemForm
             // this is an awful fitness metric, but it's the standard
             // one used for these problems.  :-(
                 
-            f.setStandardizedFitness(state,
+            f.setStandardizedFitness(state,(float)
                     (1.0 - ((double)(totpos + totneg)) / 
                     (posT.length + negT.length)));
 
             // here are two other more reasonable fitness metrics
             /*
-              f.setStandardizedFitness(state,
+              f.setStandardizedFitness(state,(float)
               (1.0 - Math.min(((double)totpos)/posT.length,
               ((double)totneg)/negT.length)));
 
-              f.setStandardizedFitness(state,
+              f.setStandardizedFitness(state,(float)
               (1.0 - (((double)totpos)/posT.length +
               ((double)totneg)/negT.length)/2.0));
             */
@@ -647,13 +644,13 @@ public class Edge extends GPProblem implements SimpleProblemForm
                 "Pos: " + totpos + "/" + posA.length + 
                 " Neg: " + totneg + "/" + negA.length + 
                 "\n(pos+neg)/(allpos+allneg):     " + 
-                
+                (float)
                 (((double)(totpos+totneg))/(posA.length+negA.length)) +
                 "\n((pos/allpos)+(neg/allneg))/2: " + 
-                
+                (float)
                 (((((double)totpos)/posA.length)+(((double)totneg)/negA.length))/2) +
                 "\nMin(pos/allpos,neg/allneg):    " +
-                Math.min((((double)totpos)/posA.length),(((double)totneg)/negA.length)),
+                (float)Math.min((((double)totpos)/posA.length),(((double)totneg)/negA.length)),
                 log);
                 
         state.output.println("\nBest Individual's NFA\n=====================\n",

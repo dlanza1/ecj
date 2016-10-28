@@ -212,9 +212,9 @@ public class MuCommaLambdaBreeder extends Breeder
                             parentPopulation.subpops[x].individuals[parent].fitness))
                         numChildrenBetter++;
                     }
-                if (numChildrenBetter > lambda[x] / 5.0)  // note double division
+                if (numChildrenBetter > lambda[x] / 5.0)  // note float division
                     comparison[x] = C_OVER_ONE_FIFTH_BETTER;
-                else if (numChildrenBetter < lambda[x] / 5.0)  // note double division
+                else if (numChildrenBetter < lambda[x] / 5.0)  // note float division
                     comparison[x] = C_UNDER_ONE_FIFTH_BETTER;
                 else comparison[x] = C_EXACTLY_ONE_FIFTH_BETTER;
                 }

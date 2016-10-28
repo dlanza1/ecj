@@ -84,7 +84,7 @@ public class MajorityGA extends Problem implements SimpleProblemForm
         {
         // the trials strategy here is: 25% ones, 25% zeros, and 50% random choice
         
-        //MersenneTwisterFast mtf = state.random[thread];
+        MersenneTwisterFast mtf = state.random[thread];
         
         for(int i = 0; i < NUM_TRIALS / 4; i++)
             {
@@ -184,7 +184,7 @@ public class MajorityGA extends Problem implements SimpleProblemForm
                         sum ++;
                     }
                 SimpleFitness f = ((SimpleFitness)ind.fitness);
-                f.setFitness(state, sum / (double)NUM_TRIALS, false);
+                f.setFitness(state, (sum / (float)NUM_TRIALS), false);
                 ind.evaluated = true;
                 }
         }

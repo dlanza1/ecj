@@ -222,7 +222,7 @@ public abstract class Individual implements Prototype, Comparable
         final int log, 
         final int verbosity)
         {
-        printIndividual( state, log);
+        printIndividual( state, log,  Output.V_NO_GENERAL);
         }
 
     /** Should print the individual in a way that can be read by computer,

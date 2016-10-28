@@ -23,8 +23,7 @@ import java.util.*;
 
 public class SAT extends Problem implements SimpleProblemForm 
     { 
-    private static final long serialVersionUID = 1;
-    
+        
     public static final String P_FILENAME = "sat-filename"; 
         
     Clause formula[];
@@ -32,13 +31,11 @@ public class SAT extends Problem implements SimpleProblemForm
     public void setup(EvolutionState state, Parameter base) 
         {
         super.setup(state, base); 
-        File filename = state.parameters.getFile(base.push(P_FILENAME), null); 
-        if (filename == null)  // uh oh
-            state.output.fatal("Filename must be provided", base.push(P_FILENAME));
+        String fileName = state.parameters.getString(base.push(P_FILENAME), null); 
                 
         try 
             { 
-            BufferedReader inFile = new BufferedReader(new FileReader(filename)); 
+            BufferedReader inFile = new BufferedReader(new FileReader(new File(fileName))); 
             String line=""; 
             int cnt=0;
             boolean start = false; 
@@ -53,7 +50,7 @@ public class SAT extends Problem implements SimpleProblemForm
                 if (line.startsWith("p")) 
                     { 
                     start = true;
-                    line = line.trim(); 
+                    line.trim(); 
                     int index = line.lastIndexOf(" "); 
                     formula = new Clause[Integer.parseInt(line.substring(index+1))]; 
                     }
@@ -62,7 +59,7 @@ public class SAT extends Problem implements SimpleProblemForm
             } 
         catch (IOException e) 
             { 
-            state.output.fatal("Error in SAT setup, while loading from file " + filename +
+            state.output.fatal("Error in SAT setup, while loading from file " + fileName +
                 "\nFrom parameter " + base.push(P_FILENAME) + "\nError:\n" + e);  
             }
         }
@@ -78,7 +75,7 @@ public class SAT extends Problem implements SimpleProblemForm
         for (int i=0; i < formula.length; i++)                  
             fitness += formula[i].eval(ind2); 
                 
-        ((SimpleFitness)(ind2.fitness)).setFitness( state, fitness, false);
+        ((SimpleFitness)(ind2.fitness)).setFitness( state, (float) fitness, false);
         ind2.evaluated = true; 
         }
         
@@ -87,9 +84,8 @@ public class SAT extends Problem implements SimpleProblemForm
        Private helper class holding a single clause in the boolean formula. Each clause 
        is a disjunction of boolean variables (or their negation).
     */
-    public static class Clause implements java.io.Serializable
+    public class Clause 
         { 
-        private static final long serialVersionUID = 1;
                 
         int[] variables; 
         public Clause(String c) 

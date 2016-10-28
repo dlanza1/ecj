@@ -9,9 +9,9 @@ package ec.gp.ge;
 import ec.util.Parameter;
 import ec.*;
 
-/*
+/* 
  * GEDefaults.java
- *
+ * 
  * Created: Fri May 28 14:29:41 EDT 2010
  * By: Sean Luke
  */
@@ -22,7 +22,7 @@ import ec.*;
  * species basis.
  *
  * @author Sean Luke
- * @version 1.0
+ * @version 1.0 
  */
 
 public final class GEDefaults implements DefaultsForm

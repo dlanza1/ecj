@@ -31,10 +31,6 @@ public class SPEA2Breeder extends SimpleBreeder
         {
         super.setup(state, base);
 
-        for (int i = 0; i < state.population.subpops.length; i++)
-            if (reduceBy[i] != 0)
-                state.output.fatal("SPEA2Breeder does not support population reduction.", base.push(P_REDUCE_BY).push(""+i), null);
-                        
         if (sequentialBreeding) // uh oh, haven't tested with this
             state.output.fatal("SPEA2Breeder does not support sequential evaluation.",
                 base.push(P_SEQUENTIAL_BREEDING));
@@ -78,7 +74,7 @@ public class SPEA2Breeder extends SimpleBreeder
 
     public void buildArchive(EvolutionState state, Individual[] oldInds, Individual[] newInds, int archiveSize)
         {
-        //Individual[] dummy = new Individual[0];
+        Individual[] dummy = new Individual[0];
                 
         // step 1: load the archive with the pareto-nondominated front
         ArrayList archive = new ArrayList();
@@ -101,9 +97,8 @@ public class SPEA2Breeder extends SimpleBreeder
 
         // step 3: if the archive is OVERFULL, iterate as follows:
         //              step 3a: remove the k-closest individual in the archive
-
-        //SPEA2Evaluator evaluator = ((SPEA2Evaluator)(state.evaluator));
-        // Individual[] inds = (Individual[])(archive.toArray(dummy));
+        SPEA2Evaluator evaluator = ((SPEA2Evaluator)(state.evaluator));
+        Individual[] inds = (Individual[])(archive.toArray(dummy));
                 
         while(currentArchiveSize > archiveSize)
             {
