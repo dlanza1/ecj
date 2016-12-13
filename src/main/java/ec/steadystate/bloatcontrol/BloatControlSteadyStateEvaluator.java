@@ -44,6 +44,7 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 	public void evaluateIndividual(EvolutionState state, Individual ind, int subpop) {
 		synchronized (toBeEvaluatedIndividuals) {
 			toBeEvaluatedIndividuals.addLast(new QueueIndividual(ind, subpop));
+			toBeEvaluatedIndividuals.notify();
 		}
 	}
 	

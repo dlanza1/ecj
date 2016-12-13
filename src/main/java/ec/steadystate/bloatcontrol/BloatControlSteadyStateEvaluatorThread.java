@@ -39,6 +39,10 @@ public class BloatControlSteadyStateEvaluatorThread implements Runnable {
 			try{
 				QueueIndividual ind = null;
 				synchronized (toBeEvaluatedIndividuals) {
+					try {
+						toBeEvaluatedIndividuals.wait();
+					} catch (InterruptedException e) {}
+					
 					if(toBeEvaluatedIndividuals.size() == 0){
 						emptyListCounter++;
 						
