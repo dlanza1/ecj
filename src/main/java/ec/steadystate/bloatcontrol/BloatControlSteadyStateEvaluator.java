@@ -42,6 +42,10 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 	
 	@Override
 	public void evaluateIndividual(EvolutionState state, Individual ind, int subpop) {
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {}
+		
 		synchronized (toBeEvaluatedIndividuals) {
 			toBeEvaluatedIndividuals.addLast(new QueueIndividual(ind, subpop));
 			toBeEvaluatedIndividuals.notify();
