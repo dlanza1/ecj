@@ -26,7 +26,7 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 
 	@Override
 	public void prepareToEvaluate(EvolutionState state, int thread) {		
-		int num_threads = 4;
+		int num_threads = 3;
 		
 		ExecutorService executor = Executors.newFixedThreadPool(num_threads);
 		for (int thread_num = 0; thread_num < num_threads; thread_num++) {
@@ -42,13 +42,14 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 	
 	@Override
 	public void evaluateIndividual(EvolutionState state, Individual ind, int subpop) {
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {}
-		
-		synchronized (toBeEvaluatedIndividuals) {
-			toBeEvaluatedIndividuals.addLast(new QueueIndividual(ind, subpop));
-			toBeEvaluatedIndividuals.notify();
+		while(true){
+			synchronized (toBeEvaluatedIndividuals) {
+				if(toBeEvaluatedIndividuals.size() < 100){
+					toBeEvaluatedIndividuals.addLast(new QueueIndividual(ind, subpop));
+					
+					return;
+				}
+			}
 		}
 	}
 	
