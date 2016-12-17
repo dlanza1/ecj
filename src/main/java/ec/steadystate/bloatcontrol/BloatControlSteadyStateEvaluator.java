@@ -6,10 +6,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ec.EvolutionState;
+import ec.Evolve;
 import ec.Individual;
 import ec.simple.SimpleProblemForm;
 import ec.steadystate.QueueIndividual;
 import ec.steadystate.SteadyStateEvaluator;
+import ec.util.Parameter;
 
 public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 
@@ -26,7 +28,7 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 
 	@Override
 	public void prepareToEvaluate(EvolutionState state, int thread) {		
-		int num_threads = 3;
+		int num_threads = state.evalthreads;
 		
 		ExecutorService executor = Executors.newFixedThreadPool(num_threads);
 		for (int thread_num = 0; thread_num < num_threads; thread_num++) {
