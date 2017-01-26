@@ -13,6 +13,8 @@
 # simple generational evolution
 state = 				ec.steadystate.SteadyStateEvolutionState
 
+stat =					ec.steadystate.SteadyStateStatistics
+
 # We can EITHER say to run for N evaluations of subpopulation 0
 # (evaluations in other subpopulations are not counted) like this:
 # evaluations = 50000
