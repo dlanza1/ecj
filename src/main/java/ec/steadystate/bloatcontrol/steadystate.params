@@ -37,7 +37,7 @@ exch = 					ec.simple.SimpleExchanger
 # We MUST use a SteadyStateBreeder and SteadyStateEvaluator
 breed =					ec.steadystate.SteadyStateBreeder
 eval =					ec.steadystate.bloatcontrol.BloatControlSteadyStateEvaluator
-#eval =					ec.steadystate.SteadyStateEvaluator
+to-be-evaluated-individuals.list.maximum-size = 1000
 
 # We must specify a deselector for each subpopulation.  Here is random
 # deselection for subpopulation 0.

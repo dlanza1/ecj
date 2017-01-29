@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ec.EvolutionState;
-import ec.Evolve;
 import ec.Individual;
 import ec.simple.SimpleProblemForm;
 import ec.steadystate.QueueIndividual;
@@ -21,6 +20,8 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 	
 	private LinkedList<QueueIndividual> evaluatedIndividuals;
 
+	private int toBeEvaluatedIndividualsListMaximumSize;
+
 	public BloatControlSteadyStateEvaluator() {
     	toBeEvaluatedIndividuals = new LinkedList<QueueIndividual>();
     	evaluatedIndividuals = new LinkedList<QueueIndividual>();
@@ -29,6 +30,10 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 	@Override
 	public void prepareToEvaluate(EvolutionState state, int thread) {		
 		int num_threads = state.evalthreads;
+		toBeEvaluatedIndividualsListMaximumSize = state.parameters.getIntWithDefault(
+				new Parameter("to-be-evaluated-individuals.list.maximum-size"), null, 1000);
+		
+		System.out.println("aaa " + toBeEvaluatedIndividualsListMaximumSize);
 		
 		ExecutorService executor = Executors.newFixedThreadPool(num_threads);
 		for (int thread_num = 0; thread_num < num_threads; thread_num++) {
@@ -46,7 +51,7 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 	public void evaluateIndividual(EvolutionState state, Individual ind, int subpop) {
 		while(true){
 			synchronized (toBeEvaluatedIndividuals) {
-				if(toBeEvaluatedIndividuals.size() < 100){
+				if(toBeEvaluatedIndividuals.size() < toBeEvaluatedIndividualsListMaximumSize){
 					toBeEvaluatedIndividuals.addLast(new QueueIndividual(ind, subpop));
 					
 					return;
