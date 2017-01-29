@@ -33,8 +33,6 @@ public class BloatControlSteadyStateEvaluator extends SteadyStateEvaluator {
 		toBeEvaluatedIndividualsListMaximumSize = state.parameters.getIntWithDefault(
 				new Parameter("to-be-evaluated-individuals.list.maximum-size"), null, 1000);
 		
-		System.out.println("aaa " + toBeEvaluatedIndividualsListMaximumSize);
-		
 		ExecutorService executor = Executors.newFixedThreadPool(num_threads);
 		for (int thread_num = 0; thread_num < num_threads; thread_num++) {
 			Runnable worker = new BloatControlSteadyStateEvaluatorThread(
