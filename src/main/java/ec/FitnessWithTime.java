@@ -1,6 +1,6 @@
 package ec;
 
-public interface FitnessWithTIme {
+public interface FitnessWithTime {
 
     /**
      * Establish the time the evaluation took

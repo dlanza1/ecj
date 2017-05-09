@@ -1,8 +1,8 @@
 package ec.gp.koza;
 
-import ec.FitnessWithTIme;
+import ec.FitnessWithTime;
 
-public class KozaFitnessWithTime extends KozaFitness implements FitnessWithTIme {
+public class KozaFitnessWithTime extends KozaFitness implements FitnessWithTime {
 
     private static final long serialVersionUID = -1324141958798858247L;
     

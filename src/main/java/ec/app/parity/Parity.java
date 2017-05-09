@@ -126,8 +126,8 @@ public class Parity extends GPProblem implements SimpleProblemForm
             f.setStandardizedFitness(state, (totalSize - sum));
             f.hits = sum;
             
-            if(f instanceof FitnessWithTIme)
-                ((FitnessWithTIme) f).setEvaluationTime(finishingTime - startingTime);
+            if(f instanceof FitnessWithTime)
+                ((FitnessWithTime) f).setEvaluationTime(finishingTime - startingTime);
             
             ind.evaluated = true;
             }

@@ -7,7 +7,7 @@
 package ec.steadystate;
 
 import ec.EvolutionState;
-import ec.FitnessWithTIme;
+import ec.FitnessWithTime;
 import ec.Individual;
 import ec.gp.GPIndividual;
 import ec.simple.SimpleStatistics;
@@ -42,13 +42,21 @@ public class SteadyStateStatistics extends SimpleStatistics {
 		for(int subpop_index=0;subpop_index<state.population.subpops.length;subpop_index++){
 			float size_acumulator = 0;
 			float fitness_acumulator = 0;
+			long evaluation_time_acumulator = 0;
 			GPIndividual best_individual = (GPIndividual) state.population.subpops[0].individuals[0];
+			
+			boolean fitnessWithTime = false;
+            if(best_individual.fitness instanceof FitnessWithTime)
+			    fitnessWithTime  = true;
 			
 			for(int indiv_index=1;indiv_index<state.population.subpops[subpop_index].individuals.length;indiv_index++){
 				GPIndividual indiv = (GPIndividual) state.population.subpops[subpop_index].individuals[indiv_index];
 
 				size_acumulator += indiv.size();
 				fitness_acumulator += indiv.fitness.fitness();
+				if(fitnessWithTime)
+                    evaluation_time_acumulator += ((FitnessWithTime) best_individual.fitness).getEvaluationTime();
+				
 				if(indiv.fitness.fitness() > best_individual.fitness.fitness()){
 					best_individual = indiv;
 				}
@@ -60,20 +68,24 @@ public class SteadyStateStatistics extends SimpleStatistics {
 			float fitness_avg = fitness_acumulator / (float) state.population.subpops[subpop_index].individuals.length;
 			state.output.message("Average fitness: " + fitness_avg);
 			
+			float evaluation_time_avg = evaluation_time_acumulator / (float) state.population.subpops[subpop_index].individuals.length;
+            state.output.message("Average evaluation time: " + evaluation_time_avg);
+			
 			state.output.message("Best fitness: " + best_individual.fitness.fitness());
 			state.output.message("Best individual size: " + best_individual.size());
 			
-			if(best_individual.fitness instanceof FitnessWithTIme)
-			    state.output.message("Best individual time: " + ((FitnessWithTIme) best_individual.fitness).getEvaluationTime());
+			if(fitnessWithTime)
+			    state.output.message("Best individual time: " + ((FitnessWithTime) best_individual.fitness).getEvaluationTime());
 			
 			state.output.message("");
 			
 			state.output.println(state.generation + " " 
 					 		   + size_avg + " "
 					 		   + fitness_avg + " "
+					 		   + (fitnessWithTime ? evaluation_time_avg + " ":"")
 					 		   + best_individual.fitness.fitness() + " "
 							   + best_individual.size()
-							   + ((best_individual.fitness instanceof FitnessWithTIme) ? " " + ((FitnessWithTIme) best_individual.fitness).getEvaluationTime():""), 
+							   + (fitnessWithTime ? " " + ((FitnessWithTime) best_individual.fitness).getEvaluationTime():""), 
 							   statisticslog);
 		}
 	}
