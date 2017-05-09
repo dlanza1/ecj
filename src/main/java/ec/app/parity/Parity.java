@@ -99,6 +99,8 @@ public class Parity extends GPProblem implements SimpleProblemForm
             {
             ParityData input = (ParityData)(this.input);
 
+            long startingTime = System.currentTimeMillis();
+            
             int sum = 0;
                 
             for(bits=0;bits<totalSize;bits++)
@@ -116,11 +118,17 @@ public class Parity extends GPProblem implements SimpleProblemForm
                     ((!doEven) && ((input.x & 1) == tb)))
                     sum++;
                 }
-                
+            
+            long finishingTime = System.currentTimeMillis();
+            
             // the fitness better be KozaFitness!
             KozaFitness f = ((KozaFitness)ind.fitness);
             f.setStandardizedFitness(state, (totalSize - sum));
             f.hits = sum;
+            
+            if(f instanceof FitnessWithTIme)
+                ((FitnessWithTIme) f).setEvaluationTime(finishingTime - startingTime);
+            
             ind.evaluated = true;
             }
         }

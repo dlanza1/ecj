@@ -7,6 +7,7 @@
 package ec.steadystate;
 
 import ec.EvolutionState;
+import ec.FitnessWithTIme;
 import ec.Individual;
 import ec.gp.GPIndividual;
 import ec.simple.SimpleStatistics;
@@ -62,13 +63,17 @@ public class SteadyStateStatistics extends SimpleStatistics {
 			state.output.message("Best fitness: " + best_individual.fitness.fitness());
 			state.output.message("Best individual size: " + best_individual.size());
 			
+			if(best_individual.fitness instanceof FitnessWithTIme)
+			    state.output.message("Best individual time: " + ((FitnessWithTIme) best_individual.fitness).getEvaluationTime());
+			
 			state.output.message("");
 			
 			state.output.println(state.generation + " " 
 					 		   + size_avg + " "
 					 		   + fitness_avg + " "
 					 		   + best_individual.fitness.fitness() + " "
-							   + best_individual.size(), 
+							   + best_individual.size()
+							   + ((best_individual.fitness instanceof FitnessWithTIme) ? " " + ((FitnessWithTIme) best_individual.fitness).getEvaluationTime():""), 
 							   statisticslog);
 		}
 	}

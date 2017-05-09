@@ -5,7 +5,7 @@
 parent.0 = ../../../steadystate/bloatcontrol/steadystate.params
 parent.1 = ../../../gp/koza/koza.params
 
-evalthreads = 2
+evalthreads = 1
 seed.0 = time
 seed.1 = time
 seed.2 = time
@@ -14,6 +14,8 @@ seed.4 = time
 seed.5 = time
 seed.6 = time
 seed.7 = time
+
+pop.subpop.0.species.fitness = ec.gp.koza.KozaFitnessWithTime
 
 # Stolen from koza/params -- overwriting just
 # a little for readability
@@ -108,10 +110,10 @@ eval.problem.data = ec.app.parity.ParityData
 
 
 # Here we determine what kind of Parity we're doing:
-eval.problem.bits = 12
+eval.problem.bits = 16
 eval.problem.even = true
 
 # this value must always be set to *4* more than eval.problem.bits
-gp.fs.0.size = 16
+gp.fs.0.size = 20
 
 
