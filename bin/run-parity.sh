@@ -20,10 +20,10 @@ problem_name="parity"
 for evalthreads in 1 2 4 6 8
 do
     java -cp $HOME/target/ecj-*.jar ec.Evolve \
-    		-file $HOME/src/main/java/ec/app/parity/bloatcontrol/parity.params \
+    		-file $HOME/src/main/java/ec/app/regression/bloatcontrol/steadyerc.params \
 			-p jobs=30 \
 			-p generations=${generations} \
 			-p to-be-evaluated-individuals.list.maximum-size=${list_max_size} \
 			-p evalthreads=${evalthreads} \
-			-p stat.file=$HOME/out/${problem_name}.${evalthreads}.stat
+			-p stat.file=$HOME/out/parity/${problem_name}.${evalthreads}.stat
 done

@@ -99,27 +99,42 @@ public class Parity extends GPProblem implements SimpleProblemForm
             {
             ParityData input = (ParityData)(this.input);
 
-            long startingTime = System.currentTimeMillis();
+            Timer timer = new Timer().start();
             
             int sum = 0;
-                
+            
+//            ((GPIndividual)ind).printIndividual(state, 0);
+            
             for(bits=0;bits<totalSize;bits++)
                 {
+                
+//                System.out.print(Integer.toBinaryString(bits));
+//                System.out.print(" ");
+                
                 int tb = 0;
                 // first, is #bits even or odd?
                 for(int b=0;b<numBits;b++)
                     tb += (bits >>> b) & 1;
                 tb &= 1;  // now tb is 1 if we're odd, 0 if we're even
-
+                
+//                System.out.print(" should be:" + tb);
+                
                 ((GPIndividual)ind).trees[0].child.eval(
                     state,threadnum,input,stack,((GPIndividual)ind),this);
-
+                
+//                System.out.print("  return:" + (input.x & 1));
+                
                 if ((doEven && ((input.x & 1) != tb)) ||
-                    ((!doEven) && ((input.x & 1) == tb)))
+                    ((!doEven) && ((input.x & 1) == tb))){
                     sum++;
+//                    System.out.println(" +");
+                }else{
+//                 System.out.println();
                 }
-            
-            long finishingTime = System.currentTimeMillis();
+                }
+           
+//            System.out.println(sum);
+            timer.stop();
             
             // the fitness better be KozaFitness!
             KozaFitness f = ((KozaFitness)ind.fitness);
@@ -127,7 +142,7 @@ public class Parity extends GPProblem implements SimpleProblemForm
             f.hits = sum;
             
             if(f instanceof FitnessWithTime)
-                ((FitnessWithTime) f).setEvaluationTime(finishingTime - startingTime);
+                ((FitnessWithTime) f).setEvaluationTime(timer.getNano());
             
             ind.evaluated = true;
             }

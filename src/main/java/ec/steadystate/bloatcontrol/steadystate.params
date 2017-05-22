@@ -22,7 +22,7 @@ stat =					ec.steadystate.SteadyStateStatistics
 # ... or we can say to run for N generations, where a generation
 # is equal to the size of subpopulation 0.  After the initial population
 # is evaluated, only one additional individual is evaluated each time
-generations = 400
+generations = 10000
 
 # threads should be 1 each
 evalthreads = 				1

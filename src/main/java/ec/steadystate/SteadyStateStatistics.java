@@ -48,14 +48,21 @@ public class SteadyStateStatistics extends SimpleStatistics {
 			boolean fitnessWithTime = false;
             if(best_individual.fitness instanceof FitnessWithTime)
 			    fitnessWithTime  = true;
+            
+            StringBuilder sb = new StringBuilder();
 			
 			for(int indiv_index=1;indiv_index<state.population.subpops[subpop_index].individuals.length;indiv_index++){
 				GPIndividual indiv = (GPIndividual) state.population.subpops[subpop_index].individuals[indiv_index];
 
 				size_acumulator += indiv.size();
 				fitness_acumulator += indiv.fitness.fitness();
-				if(fitnessWithTime)
-                    evaluation_time_acumulator += ((FitnessWithTime) best_individual.fitness).getEvaluationTime();
+				if(fitnessWithTime){
+				    long evalTime = ((FitnessWithTime) indiv.fitness).getEvaluationTime();
+				    
+                    evaluation_time_acumulator += evalTime;
+                    
+                    sb.append(evalTime + " ");
+				}
 				
 				if(indiv.fitness.fitness() > best_individual.fitness.fitness()){
 					best_individual = indiv;
@@ -74,9 +81,10 @@ public class SteadyStateStatistics extends SimpleStatistics {
 			state.output.message("Best fitness: " + best_individual.fitness.fitness());
 			state.output.message("Best individual size: " + best_individual.size());
 			
-			if(fitnessWithTime)
+			if(fitnessWithTime){
 			    state.output.message("Best individual time: " + ((FitnessWithTime) best_individual.fitness).getEvaluationTime());
-			
+			}
+			    
 			state.output.message("");
 			
 			state.output.println(state.generation + " " 
@@ -87,6 +95,9 @@ public class SteadyStateStatistics extends SimpleStatistics {
 							   + best_individual.size()
 							   + (fitnessWithTime ? " " + ((FitnessWithTime) best_individual.fitness).getEvaluationTime():""), 
 							   statisticslog);
+			
+			if(fitnessWithTime)
+			    state.output.println(sb.toString(), statisticslog);
 		}
 	}
 	
