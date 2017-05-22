@@ -16,14 +16,14 @@ generations=75
 
 mkdir $HOME/out/ 2>/dev/null
 
-problem_name="parity"
+problem_name="regression"
 for evalthreads in 1 2 4 6 8
 do
     java -cp $HOME/target/ecj-*.jar ec.Evolve \
-    		-file $HOME/src/main/java/ec/app/parity/bloatcontrol/parity.params \
+    		-file $HOME/src/main/java/ec/app/regression/bloatcontrol/steadyerc.params \
 			-p jobs=30 \
 			-p generations=${generations} \
 			-p to-be-evaluated-individuals.list.maximum-size=${list_max_size} \
 			-p evalthreads=${evalthreads} \
-			-p stat.file=$HOME/out/regression/${problem_name}.${evalthreads}.stat
+			-p stat.file=$HOME/out/${problem_name}/${problem_name}.${evalthreads}.stat
 done
