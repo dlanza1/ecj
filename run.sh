@@ -11,7 +11,7 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 HOME=$SCRIPT_DIR
 
-mkdir -f $HOME/out/
+mkdir -p $HOME/out/
 
 problem_name="parity"
 java -cp $HOME/target/ecj-23-SNAPSHOT.jar ec.Evolve -file $HOME/src/main/java/ec/app/parity/parity-groups.params -p jobs=30 -p breed.groups=1 -p generations=50 -p stat.file=$HOME/out/${problem_name}.1.stat
