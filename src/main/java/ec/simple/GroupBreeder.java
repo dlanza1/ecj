@@ -85,6 +85,8 @@ public class GroupBreeder extends SimpleBreeder {
 	
 	private int num_groups;
 	
+	boolean useThreads = true;
+	
 	public void setup(final EvolutionState state, final Parameter base) {
 		super.setup(state, base);
 		
@@ -160,10 +162,29 @@ public class GroupBreeder extends SimpleBreeder {
 			//Short individuals by estimated evaluation time
 			QuickSort.qsort(state.population.subpops[subpop_index].individuals, new EvaluationTimeComparator());
 		}
-				
-		// start breed
-		for (int group_index = 0; group_index < num_groups; group_index++)
-			breedPopChunk(newpop, state, numinds[group_index], from[group_index]);
+		
+        // start breed
+		if(useThreads){
+		    GroupBreederThread[] groupBreederThreads = new GroupBreederThread[num_groups];
+		    
+		    for (int group_index = 0; group_index < num_groups; group_index++)
+		        groupBreederThreads[group_index] = new GroupBreederThread(this, newpop, state, numinds[group_index], from[group_index]);
+		    
+		    for (int group_index = 0; group_index < num_groups; group_index++)
+		        groupBreederThreads[group_index].start();
+		    
+		    for (int group_index = 0; group_index < num_groups; group_index++)
+                try {
+                    groupBreederThreads[group_index].join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+		        
+		}else{
+	        for (int group_index = 0; group_index < num_groups; group_index++) {
+                breedPopChunk(newpop, state, numinds[group_index], from[group_index]);
+            }
+		}
 		
 		return newpop;
 	}
@@ -174,7 +195,7 @@ public class GroupBreeder extends SimpleBreeder {
 	 * is declared public (for the benefit of a private helper class in this
 	 * file), you should not call it.
 	 */
-	protected void breedPopChunk(Population newpop, EvolutionState state,
+	public void breedPopChunk(Population newpop, EvolutionState state,
 			int[] numinds, int[] from) {
 		
 		for (int subpop = 0; subpop < newpop.subpops.length; subpop++) {
