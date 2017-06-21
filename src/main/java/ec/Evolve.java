@@ -7,6 +7,7 @@
 
 package ec;
 
+import ec.simple.GroupBreeder;
 import ec.util.*;
 
 import java.io.File;
@@ -342,7 +343,7 @@ public class Evolve
         String tmp_s = parameters.getString(seedParameter,null);
         if (tmp_s==null && !auto) // uh oh
             {
-            output.fatal("Seed must exist.",seedParameter,null);
+            return (int)currentTime;
             }
         else if (V_SEED_TIME.equalsIgnoreCase(tmp_s) || (tmp_s == null && auto))
             {
@@ -426,11 +427,16 @@ public class Evolve
         boolean auto = (V_THREADS_AUTO.equalsIgnoreCase(parameters.getString(new Parameter(P_BREEDTHREADS),null)) ||
             V_THREADS_AUTO.equalsIgnoreCase(parameters.getString(new Parameter(P_EVALTHREADS),null)));  // at least one thread is automatic.  Seeds may need to be dynamic.
 
+        int num_groups;
+        if(parameters.exists(new Parameter("breed." + GroupBreeder.P_NUM_GROPUS), null))
+            num_groups = parameters.getInt(new Parameter("breed." + GroupBreeder.P_NUM_GROPUS), null);
+        else
+            num_groups = 1;
+        
         // 3. create the Mersenne Twister random number generators,
         // one per thread
 
-        random = new MersenneTwisterFast[breedthreads > evalthreads ? 
-            breedthreads : evalthreads];
+        random = new MersenneTwisterFast[Math.max(Math.max(evalthreads, breedthreads), num_groups)];
         seeds = new int[random.length];
                                                 
         String seedMessage = "Seed: ";

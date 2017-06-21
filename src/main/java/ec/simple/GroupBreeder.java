@@ -168,7 +168,7 @@ public class GroupBreeder extends SimpleBreeder {
 		    GroupBreederThread[] groupBreederThreads = new GroupBreederThread[num_groups];
 		    
 		    for (int group_index = 0; group_index < num_groups; group_index++)
-		        groupBreederThreads[group_index] = new GroupBreederThread(this, newpop, state, numinds[group_index], from[group_index]);
+		        groupBreederThreads[group_index] = new GroupBreederThread(this, group_index, newpop, state, numinds[group_index], from[group_index]);
 		    
 		    for (int group_index = 0; group_index < num_groups; group_index++)
 		        groupBreederThreads[group_index].start();
@@ -182,7 +182,7 @@ public class GroupBreeder extends SimpleBreeder {
 		        
 		}else{
 	        for (int group_index = 0; group_index < num_groups; group_index++) {
-                breedPopChunk(newpop, state, numinds[group_index], from[group_index]);
+                breedPopChunk(newpop, state, numinds[group_index], from[group_index], 0);
             }
 		}
 		
@@ -196,14 +196,14 @@ public class GroupBreeder extends SimpleBreeder {
 	 * file), you should not call it.
 	 */
 	public void breedPopChunk(Population newpop, EvolutionState state,
-			int[] numinds, int[] from) {
+			int[] numinds, int[] from, int threadnum) {
 		
 		for (int subpop = 0; subpop < newpop.subpops.length; subpop++) {
 			if(numinds[subpop] <= 0)
 				break;
 			
 			// if it's subpop's turn and we're doing sequential breeding...
-			if (!shouldBreedSubpop(state, subpop, 0)) {
+			if (!shouldBreedSubpop(state, subpop, threadnum)) {
 				// instead of breeding, we should just copy forward this
 				// subpopulation. We'll copy the part we're assigned
 				for (int ind = from[subpop]; ind < numinds[subpop]
@@ -225,7 +225,7 @@ public class GroupBreeder extends SimpleBreeder {
 				// the right kind of individuals. Don't want a mistake there!
 				// :-)
 				int x;
-				if (!bp.produces(state, newpop, subpop, 0))
+				if (!bp.produces(state, newpop, subpop, threadnum))
 					state.output
 							.fatal("The Breeding Pipeline of subpopulation "
 									+ subpop
@@ -234,7 +234,7 @@ public class GroupBreeder extends SimpleBreeder {
 											.getName()
 									+ " or fitness "
 									+ newpop.subpops[subpop].species.f_prototype);
-				bp.prepareToProduce(state, subpop, 0);
+				bp.prepareToProduce(state, subpop, threadnum);
 
 				// start breedin'!
 
@@ -244,14 +244,14 @@ public class GroupBreeder extends SimpleBreeder {
 					x += bp.produce(from[subpop], from[subpop]+numinds[subpop]-1, 
 							1, upperbound - x, x, subpop,
 							newpop.subpops[subpop].individuals, state,
-							0);
+							threadnum);
 				if (x > upperbound) // uh oh! Someone blew it!
 					state.output
 							.fatal("Whoa!  A breeding pipeline overwrote the space of another pipeline in subpopulation "
 									+ subpop
 									+ ".  You need to check your breeding pipeline code (in produce() ).");
 
-				bp.finishProducing(state, subpop, 0);
+				bp.finishProducing(state, subpop, threadnum);
 			}
 		}
 	}
